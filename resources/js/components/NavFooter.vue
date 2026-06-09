@@ -1,0 +1,46 @@
+<script setup lang="ts">
+import {
+    SidebarGroup,
+    SidebarGroupContent,
+    SidebarMenu,
+    SidebarMenuButton,
+    SidebarMenuItem,
+} from '@/components/ui/sidebar';
+import { toUrl } from '@/lib/utils';
+import type { NavItem } from '@/types';
+
+type Props = {
+    items: NavItem[];
+    class?: string;
+};
+
+defineProps<Props>();
+</script>
+
+<template>
+    <SidebarGroup
+        :class="`group-data-[collapsible=icon]:p-0 ${$props.class || ''}`"
+        dir="rtl"
+    >
+        <SidebarGroupContent>
+            <SidebarMenu>
+                <SidebarMenuItem v-for="item in items" :key="item.title">
+                    <SidebarMenuButton
+                        class="justify-start text-right text-neutral-600 hover:text-neutral-800 dark:text-neutral-300 dark:hover:text-neutral-100"
+                        as-child
+                    >
+                        <a
+                            :href="toUrl(item.href)"
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            class="flex flex-row-reverse items-center gap-2"
+                        >
+                            <component :is="item.icon" class="size-4 shrink-0" />
+                            <span class="min-w-0 flex-1 truncate">{{ item.title }}</span>
+                        </a>
+                    </SidebarMenuButton>
+                </SidebarMenuItem>
+            </SidebarMenu>
+        </SidebarGroupContent>
+    </SidebarGroup>
+</template>

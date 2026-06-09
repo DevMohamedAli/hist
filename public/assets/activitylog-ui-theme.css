@@ -1,0 +1,35 @@
+html[dir="rtl"] body {
+    font-family: Cairo, Inter, system-ui, sans-serif;
+}
+
+.activitylog-university-nav {
+    border-top: 4px solid #1e40af;
+}
+
+.activitylog-university-nav a[aria-current="page"],
+.activitylog-university-nav .border-blue-500 {
+    border-color: #f97316 !important;
+    color: #1e40af !important;
+}
+
+button:focus,
+a:focus,
+input:focus,
+select:focus,
+textarea:focus {
+    --tw-ring-color: #f97316 !important;
+}
+
+.bg-blue-500,
+.hover\:bg-blue-600:hover {
+    background-color: #1e40af !important;
+}
+
+.text-blue-500,
+.text-blue-600 {
+    color: #1e40af !important;
+}
+
+.border-blue-500 {
+    border-color: #f97316 !important;
+}

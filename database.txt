@@ -1,0 +1,155 @@
+﻿=== DATABASE SCHEMA AND STRUCTURE ===
+CREATE TABLE IF NOT EXISTS "migrations" ("id" integer primary key autoincrement not null, "migration" varchar not null, "batch" integer not null);
+CREATE TABLE sqlite_sequence(name,seq);
+CREATE TABLE IF NOT EXISTS "users" ("id" integer primary key autoincrement not null, "name" varchar not null, "email" varchar not null, "email_verified_at" datetime, "password" varchar not null, "remember_token" varchar, "created_at" datetime, "updated_at" datetime, "two_factor_secret" text, "two_factor_recovery_codes" text, "two_factor_confirmed_at" datetime);
+CREATE UNIQUE INDEX "users_email_unique" on "users" ("email");
+CREATE TABLE IF NOT EXISTS "password_reset_tokens" ("email" varchar not null, "token" varchar not null, "created_at" datetime, primary key ("email"));
+CREATE TABLE IF NOT EXISTS "sessions" ("id" varchar not null, "user_id" integer, "ip_address" varchar, "user_agent" text, "payload" text not null, "last_activity" integer not null, primary key ("id"));
+CREATE INDEX "sessions_user_id_index" on "sessions" ("user_id");
+CREATE INDEX "sessions_last_activity_index" on "sessions" ("last_activity");
+CREATE TABLE IF NOT EXISTS "cache" ("key" varchar not null, "value" text not null, "expiration" integer not null, primary key ("key"));
+CREATE INDEX "cache_expiration_index" on "cache" ("expiration");
+CREATE TABLE IF NOT EXISTS "cache_locks" ("key" varchar not null, "owner" varchar not null, "expiration" integer not null, primary key ("key"));
+CREATE INDEX "cache_locks_expiration_index" on "cache_locks" ("expiration");
+CREATE TABLE IF NOT EXISTS "jobs" ("id" integer primary key autoincrement not null, "queue" varchar not null, "payload" text not null, "attempts" integer not null, "reserved_at" integer, "available_at" integer not null, "created_at" integer not null);
+CREATE INDEX "jobs_queue_index" on "jobs" ("queue");
+CREATE TABLE IF NOT EXISTS "job_batches" ("id" varchar not null, "name" varchar not null, "total_jobs" integer not null, "pending_jobs" integer not null, "failed_jobs" integer not null, "failed_job_ids" text not null, "options" text, "cancelled_at" integer, "created_at" integer not null, "finished_at" integer, primary key ("id"));
+CREATE TABLE IF NOT EXISTS "failed_jobs" ("id" integer primary key autoincrement not null, "uuid" varchar not null, "connection" varchar not null, "queue" varchar not null, "payload" text not null, "exception" text not null, "failed_at" datetime not null default CURRENT_TIMESTAMP);
+CREATE INDEX "failed_jobs_connection_queue_failed_at_index" on "failed_jobs" ("connection", "queue", "failed_at");
+CREATE UNIQUE INDEX "failed_jobs_uuid_unique" on "failed_jobs" ("uuid");
+CREATE TABLE IF NOT EXISTS "passkeys" ("id" integer primary key autoincrement not null, "user_id" integer not null, "name" varchar not null, "credential_id" varchar not null, "credential" text not null, "last_used_at" datetime, "created_at" datetime, "updated_at" datetime, foreign key("user_id") references "users"("id") on delete cascade);
+CREATE INDEX "passkeys_user_id_index" on "passkeys" ("user_id");
+CREATE UNIQUE INDEX "passkeys_credential_id_unique" on "passkeys" ("credential_id");
+CREATE TABLE IF NOT EXISTS "instructors" ("id" integer primary key autoincrement not null, "user_id" integer, "department_id" integer, "name" varchar not null, "national_id" varchar, "email" varchar, "phone" varchar, "academic_rank" varchar, "status" varchar check ("status" in ('Active', 'On_Leave', 'Suspended')) not null default 'Active', "qualifications" varchar, "specialization" varchar, "office_location" varchar, "created_at" datetime, "updated_at" datetime, foreign key("user_id") references "users"("id") on delete set null, foreign key("department_id") references "departments"("id") on delete set null);
+CREATE UNIQUE INDEX "instructors_national_id_unique" on "instructors" ("national_id");
+CREATE UNIQUE INDEX "instructors_email_unique" on "instructors" ("email");
+CREATE TABLE IF NOT EXISTS "departments" ("id" integer primary key autoincrement not null, "name" varchar not null, "created_at" datetime, "updated_at" datetime);
+CREATE UNIQUE INDEX "departments_name_unique" on "departments" ("name");
+CREATE TABLE IF NOT EXISTS "specializations" ("id" integer primary key autoincrement not null, "department_id" integer not null, "name" varchar not null, "code" varchar, "description" text, "semesters_count" integer not null default '6', "created_at" datetime, "updated_at" datetime, foreign key("department_id") references "departments"("id") on delete cascade);
+CREATE UNIQUE INDEX "specializations_code_unique" on "specializations" ("code");
+CREATE TABLE IF NOT EXISTS "academic_semesters" ("id" integer primary key autoincrement not null, "code" varchar not null, "season" varchar check ("season" in ('Spring', 'Fall', 'Summer', 'Winter')) not null, "year" integer not null, "start_date" date, "end_date" date, "registration_start" date, "registration_end" date, "final_exams_start" date, "created_at" datetime, "updated_at" datetime);
+CREATE UNIQUE INDEX "academic_semesters_code_unique" on "academic_semesters" ("code");
+CREATE TABLE IF NOT EXISTS "courses" ("id" integer primary key autoincrement not null, "code" varchar not null, "name" varchar not null, "units" integer not null, "has_practical" tinyint(1) not null default '0', "prerequisite_id" integer, "created_at" datetime, "updated_at" datetime, foreign key("prerequisite_id") references "courses"("id") on delete set null);
+CREATE UNIQUE INDEX "courses_code_unique" on "courses" ("code");
+CREATE TABLE IF NOT EXISTS "course_classes" ("id" integer primary key autoincrement not null, "course_id" integer not null, "semester_id" integer not null, "instructor_id" integer not null, "group_name" varchar not null, "created_at" datetime, "updated_at" datetime, foreign key("course_id") references "courses"("id") on delete cascade, foreign key("semester_id") references "academic_semesters"("id") on delete cascade, foreign key("instructor_id") references "instructors"("id") on delete cascade);
+CREATE TABLE IF NOT EXISTS "students" ("id" integer primary key autoincrement not null, "registration_number" varchar not null, "full_name" varchar not null, "national_id" varchar not null, "gender" varchar check ("gender" in ('Male', 'Female')) not null, "nationality" varchar not null, "birth_date" date not null, "mobile" varchar, "admission_date" date not null, "qualification" varchar, "current_specialization_id" integer, "current_semester_level" integer not null default '1', "status" varchar check ("status" in ('Active', 'Suspended', 'Transferred_Out', 'Withdrawn', 'Dismissed', 'Graduated')) not null default 'Active', "created_at" datetime, "updated_at" datetime, foreign key("current_specialization_id") references "specializations"("id") on delete set null);
+CREATE UNIQUE INDEX "students_registration_number_unique" on "students" ("registration_number");
+CREATE UNIQUE INDEX "students_national_id_unique" on "students" ("national_id");
+CREATE TABLE IF NOT EXISTS "student_semester_summaries" ("id" integer primary key autoincrement not null, "student_id" integer not null, "semester_id" integer not null, "semester_gpa" numeric not null, "cumulative_gpa" numeric not null, "total_registered_units" integer not null, "carried_courses_count" integer not null default '0', "created_at" datetime, "updated_at" datetime, foreign key("student_id") references "students"("id") on delete cascade, foreign key("semester_id") references "academic_semesters"("id") on delete cascade);
+CREATE UNIQUE INDEX "student_semester_summaries_student_id_semester_id_unique" on "student_semester_summaries" ("student_id", "semester_id");
+CREATE TABLE IF NOT EXISTS "registration_suspensions" ("id" integer primary key autoincrement not null, "student_id" integer not null, "semester_id" integer not null, "suspension_reason" text not null, "approval_date" date not null, "created_at" datetime, "updated_at" datetime, foreign key("student_id") references "students"("id") on delete cascade, foreign key("semester_id") references "academic_semesters"("id") on delete cascade);
+CREATE TABLE IF NOT EXISTS "department_transfers" ("id" integer primary key autoincrement not null, "student_id" integer not null, "from_specialization_id" integer not null, "to_specialization_id" integer not null, "transfer_date" date not null, "approval_reference" varchar not null, "created_at" datetime, "updated_at" datetime, foreign key("student_id") references "students"("id") on delete cascade, foreign key("from_specialization_id") references "specializations"("id") on delete restrict, foreign key("to_specialization_id") references "specializations"("id") on delete restrict);
+CREATE TABLE IF NOT EXISTS "exam_halls" ("id" integer primary key autoincrement not null, "name" varchar not null, "capacity" integer not null, "created_at" datetime, "updated_at" datetime);
+CREATE TABLE IF NOT EXISTS "exam_schedules" ("id" integer primary key autoincrement not null, "semester_id" integer not null, "course_id" integer not null, "exam_date" date not null, "start_time" time not null, "end_time" time not null, "created_at" datetime, "updated_at" datetime, foreign key("semester_id") references "academic_semesters"("id") on delete cascade, foreign key("course_id") references "courses"("id") on delete cascade);
+CREATE TABLE IF NOT EXISTS "exam_allocations" ("id" integer primary key autoincrement not null, "exam_schedule_id" integer not null, "student_id" integer not null, "hall_id" integer not null, "invigilator_id" integer, "seat_number" varchar, "created_at" datetime, "updated_at" datetime, foreign key("exam_schedule_id") references "exam_schedules"("id") on delete cascade, foreign key("student_id") references "students"("id") on delete cascade, foreign key("hall_id") references "exam_halls"("id") on delete cascade, foreign key("invigilator_id") references "instructors"("id") on delete set null);
+CREATE UNIQUE INDEX "exam_allocations_exam_schedule_id_student_id_unique" on "exam_allocations" ("exam_schedule_id", "student_id");
+CREATE TABLE IF NOT EXISTS "study_groups" ("id" integer primary key autoincrement not null, "specialization_id" integer not null, "academic_semester_id" integer not null, "semester_level" integer not null, "group_name" varchar not null, "capacity" integer not null default '50', "created_at" datetime, "updated_at" datetime, foreign key("specialization_id") references "specializations"("id") on delete cascade, foreign key("academic_semester_id") references "academic_semesters"("id") on delete cascade);
+CREATE TABLE IF NOT EXISTS "academic_warnings" ("id" integer primary key autoincrement not null, "student_id" integer not null, "academic_semester_id" integer not null, "type" varchar check ("type" in ('Warning', 'Final_Warning', 'Dismissal')) not null, "reason" varchar not null, "created_at" datetime, "updated_at" datetime, foreign key("student_id") references "students"("id") on delete cascade, foreign key("academic_semester_id") references "academic_semesters"("id"));
+CREATE TABLE IF NOT EXISTS "course_specialization" ("id" integer primary key autoincrement not null, "course_id" integer not null, "specialization_id" integer not null, "semester_level" integer not null, "created_at" datetime, "updated_at" datetime, foreign key("course_id") references "courses"("id") on delete cascade, foreign key("specialization_id") references "specializations"("id") on delete cascade);
+CREATE UNIQUE INDEX "course_specialization_course_id_specialization_id_unique" on "course_specialization" ("course_id", "specialization_id");
+CREATE TABLE IF NOT EXISTS "course_enrollments" ("id" integer primary key autoincrement not null, "student_id" integer not null, "study_group_id" integer not null, "course_id" integer not null, "work_theory_mark" numeric default ('0'), "work_practical_mark" numeric default ('0'), "attendance_mark" numeric default ('0'), "final_theory_mark" numeric default ('0'), "final_practical_mark" numeric default ('0'), "total_mark" numeric as (work_theory_mark + work_practical_mark + attendance_mark + final_theory_mark + final_practical_mark), "is_carried" tinyint(1) not null default ('0'), "grade_evaluation" varchar, "status" varchar not null default ('Pending'), "created_at" datetime, "updated_at" datetime, "class_id" integer, foreign key("course_id") references courses("id") on delete cascade on update no action, foreign key("study_group_id") references study_groups("id") on delete cascade on update no action, foreign key("student_id") references students("id") on delete cascade on update no action, foreign key("class_id") references "course_classes"("id") on delete cascade);
+
+=== TABLE ROW COUNTS ===
+ name = migrations
+count = 23
+
+ name = users
+count = 2
+
+ name = password_reset_tokens
+count = 0
+
+ name = sessions
+count = 0
+
+ name = cache
+count = 0
+
+ name = cache_locks
+count = 0
+
+ name = jobs
+count = 0
+
+ name = job_batches
+count = 0
+
+ name = failed_jobs
+count = 0
+
+ name = passkeys
+count = 0
+
+ name = instructors
+count = 0
+
+ name = departments
+count = 0
+
+ name = specializations
+count = 0
+
+ name = academic_semesters
+count = 0
+
+ name = courses
+count = 0
+
+ name = course_classes
+count = 0
+
+ name = students
+count = 0
+
+ name = student_semester_summaries
+count = 0
+
+ name = registration_suspensions
+count = 0
+
+ name = department_transfers
+count = 0
+
+ name = exam_halls
+count = 0
+
+ name = exam_schedules
+count = 0
+
+ name = exam_allocations
+count = 0
+
+ name = study_groups
+count = 0
+
+ name = academic_warnings
+count = 0
+
+ name = course_specialization
+count = 0
+
+ name = course_enrollments
+count = 0
+
+=== DEPARTMENTS DATA ===
+
+=== COURSES DATA (First 20) ===
+
+=== USERS DATA ===
+   id = 1
+ name = Test User
+email = test@example.com
+
+   id = 2
+ name = ┘àÏ»┘èÏ▒ Ïº┘ä┘åÏ©Ïº┘à Ïº┘äÏ╣Ïº┘à
+email = admin@hist.edu.ly
+
+=== STUDENTS DATA SAMPLE (First 10) ===
+
+=== ACADEMIC SEMESTERS ===
+
+=== INSTRUCTORS DATA SAMPLE (First 10) ===
+
+=== SPECIALIZATIONS ===
+
+=== EXAM HALLS ===

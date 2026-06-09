@@ -1,0 +1,62 @@
+<?php
+require 'vendor/autoload.php';
+$app = require 'bootstrap/app.php';
+
+// Boot the application fully
+$app->make('Illuminate\Contracts\Console\Kernel')->bootstrap();
+
+// Get a logged-in employee
+$user = Modules\User\Models\User::role('employee')->first();
+
+if (!$user) {
+    echo "ERROR: No employee user found!\n";
+    exit(1);
+}
+
+echo "User: {$user->email}\n";
+echo "Roles: " . implode(', ', $user->getRoleNames()->all()) . "\n";
+echo "Gate check (viewActivityLogUi): ";
+
+// Test the gate
+$allowed = Illuminate\Support\Facades\Gate::forUser($user)->allows('viewActivityLogUi');
+echo ($allowed ? "✓ YES" : "✗ NO") . "\n";
+
+// Also test authorize directly
+try {
+    Illuminate\Support\Facades\Gate::forUser($user)->authorize('viewActivityLogUi');
+    echo "Gate::authorize: ✓ Passed\n";
+} catch (Exception $e) {
+    echo "Gate::authorize: ✗ Failed - " . $e->getMessage() . "\n";
+}
+
+// Try to test the middleware behavior
+echo "\n=== Testing Package UI Access ===\n";
+$session = app('session')->driver();
+Illuminate\Support\Facades\Auth::login($user);
+
+$request = Illuminate\Http\Request::create('/activitylog-ui', 'GET', [], [], [], ['HTTP_HOST' => '127.0.0.1:8000']);
+$request->setLaravelSession($session);
+
+$kernel = $app->make(Illuminate\Contracts\Http\Kernel::class);
+$response = $kernel->handle($request);
+
+echo "GET /activitylog-ui: " . $response->getStatusCode() . "\n";
+if ($response->getStatusCode() === 403) {
+    echo "Content: " . substr($response->getContent(), 0, 500) . "\n";
+}
+
+// Now test the API endpoint
+$apiRequest = Illuminate\Http\Request::create('/activitylog-ui/api/activities?per_page=25', 'GET', [], [], [], ['HTTP_HOST' => '127.0.0.1:8000', 'HTTP_ACCEPT' => 'application/json']);
+$apiRequest->setLaravelSession($session);
+$apiResponse = $kernel->handle($apiRequest);
+
+echo "GET /activitylog-ui/api/activities: " . $apiResponse->getStatusCode() . "\n";
+
+if ($apiResponse->getStatusCode() === 200) {
+    $data = json_decode($apiResponse->getContent(), true);
+    echo "Response has " . ($data['total'] ?? 0) . " total activities\n";
+} elseif ($apiResponse->getStatusCode() !== 200) {
+    echo "Error response: " . substr($apiResponse->getContent(), 0, 500) . "\n";
+}
+
+echo "\nDone!\n";
