@@ -17,12 +17,15 @@ class SemesterController extends Controller
     {
         return Inertia::render('Academic/Semesters/Index', [
             'semesters' => $this->cleanUtf8(AcademicSemester::orderBy('year', 'desc')->get()),
+            'creationOptions' => $this->creationOptions(),
         ]);
     }
 
     public function create(): InertiaResponse
     {
-        return Inertia::render('Academic/Semesters/Create');
+        return Inertia::render('Academic/Semesters/Create', [
+            'creationOptions' => $this->creationOptions(),
+        ]);
     }
 
     public function store(Request $request): RedirectResponse
@@ -110,7 +113,7 @@ class SemesterController extends Controller
     private function validateSemester(Request $request, ?int $semesterId = null): array
     {
         $validator = Validator::make($request->all(), [
-            'code' => 'required|string|max:20|unique:academic_semesters,code' . ($semesterId ? ',' . $semesterId : ''),
+            'code' => 'required|string|max:20|unique:academic_semesters,code'.($semesterId ? ','.$semesterId : ''),
             'season' => 'required|in:Spring,Fall',
             'year' => 'required|integer|min:2020|max:2100',
             'start_date' => 'required|date',
@@ -126,20 +129,33 @@ class SemesterController extends Controller
             'final_exams_start.required' => 'تاريخ بداية الامتحانات النهائية مطلوب.',
         ]);
 
-        $validator->after(function ($validator) use ($request) {
+        $validator->after(function ($validator) use ($request, $semesterId) {
             if ($validator->errors()->isNotEmpty()) {
                 return;
             }
 
             $season = $request->input('season');
+            $year = (int) $request->input('year');
             $start = Carbon::parse($request->input('start_date'))->startOfDay();
             $end = Carbon::parse($request->input('end_date'))->startOfDay();
             $registrationStart = Carbon::parse($request->input('registration_start'))->startOfDay();
             $registrationEnd = Carbon::parse($request->input('registration_end'))->startOfDay();
             $finalExamsStart = Carbon::parse($request->input('final_exams_start'))->startOfDay();
 
+            $duplicateQuery = AcademicSemester::query()
+                ->where('season', $season)
+                ->where('year', $year);
+
+            if ($semesterId !== null) {
+                $duplicateQuery->whereKeyNot($semesterId);
+            }
+
+            if ($duplicateQuery->exists()) {
+                $validator->errors()->add('season', 'يوجد بالفعل فصل رسمي مسجل لنفس الموسم والسنة الأكاديمية.');
+            }
+
             if ($start->diffInWeeks($end) > 20 || $start->copy()->addWeeks(20)->lt($end)) {
-                $validator->errors()->add('end_date', 'مدة الفصل الدراسي لا يجوز أن تتجاوز 20 أسبوعا.');
+                $validator->errors()->add('end_date', 'مدة الفصل الدراسي لا يجوز أن تتجاوز 20 أسبوعاً.');
             }
 
             if (! $registrationStart->equalTo($start) || $registrationEnd->gt($start->copy()->addWeeks(2))) {
@@ -160,5 +176,56 @@ class SemesterController extends Controller
         });
 
         return $validator->validate();
+    }
+
+    private function creationOptions(): array
+    {
+        $officialSeasons = [
+            ['value' => 'Spring', 'label' => 'الربيع (رسمي)'],
+            ['value' => 'Fall', 'label' => 'الخريف (رسمي)'],
+        ];
+
+        $existingPairs = AcademicSemester::query()
+            ->whereIn('season', ['Spring', 'Fall'])
+            ->get(['season', 'year'])
+            ->map(fn (AcademicSemester $semester): string => $semester->season.'-'.$semester->year)
+            ->unique()
+            ->values()
+            ->all();
+
+        $baseYear = now()->year;
+        $candidates = [];
+
+        foreach (range($baseYear, $baseYear + 4) as $year) {
+            foreach (['Spring', 'Fall'] as $season) {
+                $key = $season.'-'.$year;
+
+                if (in_array($key, $existingPairs, true)) {
+                    continue;
+                }
+
+                $candidates[] = [
+                    'season' => $season,
+                    'season_label' => $season === 'Spring' ? 'الربيع (رسمي)' : 'الخريف (رسمي)',
+                    'year' => $year,
+                    'code' => $season.'-'.$year,
+                ];
+            }
+        }
+
+        usort($candidates, function (array $a, array $b): int {
+            if ($a['year'] !== $b['year']) {
+                return $a['year'] <=> $b['year'];
+            }
+
+            return ($a['season'] === 'Spring' ? 0 : 1) <=> ($b['season'] === 'Spring' ? 0 : 1);
+        });
+
+        return [
+            'officialSeasons' => $officialSeasons,
+            'existingPairs' => $existingPairs,
+            'availableCombinations' => $candidates,
+            'defaultCombination' => $candidates[0] ?? null,
+        ];
     }
 }

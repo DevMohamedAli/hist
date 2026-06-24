@@ -5,6 +5,7 @@ import { ChevronRight, Save } from 'lucide-vue-next';
 const props = defineProps<{
     semester: Record<string, string | number | null> & { id: number };
 }>();
+
 const form = useForm({
     code: String(props.semester.code ?? ''),
     season: String(props.semester.season ?? 'Fall'),
@@ -14,6 +15,7 @@ const form = useForm({
     registration_start: String(props.semester.registration_start ?? ''),
     final_exams_start: String(props.semester.final_exams_start ?? ''),
 });
+
 const submit = () => form.patch(`/academic/semesters/${props.semester.id}`);
 </script>
 
@@ -29,8 +31,10 @@ const submit = () => form.patch(`/academic/semesters/${props.semester.id}`);
             <Link
                 href="/academic/semesters"
                 class="mb-6 inline-flex items-center gap-2 text-sm font-bold text-blue-800 hover:text-orange-500"
-                ><ChevronRight class="h-4 w-4" /> العودة للفصول</Link
             >
+                <ChevronRight class="h-4 w-4" />
+                العودة للفصول
+            </Link>
             <h1 class="text-2xl font-extrabold text-blue-800">
                 تعديل فصل دراسي
             </h1>
@@ -51,8 +55,6 @@ const submit = () => form.patch(`/academic/semesters/${props.semester.id}`);
                 >
                     <option value="Fall">الخريف</option>
                     <option value="Spring">الربيع</option>
-                    <option value="Summer">الصيف</option>
-                    <option value="Winter">الشتاء</option>
                 </select>
                 <input
                     v-model.number="form.year"
@@ -86,7 +88,8 @@ const submit = () => form.patch(`/academic/semesters/${props.semester.id}`);
                     :disabled="form.processing"
                     class="inline-flex items-center justify-center gap-2 rounded-lg bg-orange-500 px-6 py-3 font-bold text-white hover:bg-orange-600 md:col-span-2"
                 >
-                    <Save class="h-5 w-5" />حفظ التعديلات
+                    <Save class="h-5 w-5" />
+                    حفظ التعديلات
                 </button>
             </form>
         </section>
