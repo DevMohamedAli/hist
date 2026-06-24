@@ -9,6 +9,8 @@ import AppLogoIcon from '@/components/AppLogoIcon.vue';
         <AppLogoIcon class="size-5 fill-current text-white dark:text-black" />
     </div>
     <div class="mr-2 grid flex-1 text-right text-sm">
-        <span class="mb-0.5 truncate leading-tight font-bold">منظومة إدارة المعهد</span>
+        <span class="mb-0.5 truncate leading-tight font-bold"
+            >منظومة إدارة المعهد</span
+        >
     </div>
 </template>

@@ -10,15 +10,23 @@ defineProps<{
     };
 }>();
 
-const dateFields = new Set(['start_date', 'end_date', 'registration_start', 'final_exams_start'])
+const dateFields = new Set([
+    'start_date',
+    'end_date',
+    'registration_start',
+    'final_exams_start',
+]);
 
-const formatSemesterValue = (key: string, value: string | number | null | undefined) => {
+const formatSemesterValue = (
+    key: string,
+    value: string | number | null | undefined,
+) => {
     if (dateFields.has(key)) {
-        return formatDisplayDate(value, '-')
+        return formatDisplayDate(value, '-');
     }
 
-    return value || '-'
-}
+    return value || '-';
+};
 </script>
 
 <template>

@@ -52,7 +52,8 @@ const printPage = () => window.print();
                             كشف الدرجات الأكاديمي
                         </h1>
                         <p class="mt-1 text-sm text-gray-500">
-                            تاريخ الطباعة: {{ formatDisplayDateTime(printed_at) }}
+                            تاريخ الطباعة:
+                            {{ formatDisplayDateTime(printed_at) }}
                         </p>
                     </div>
                 </div>

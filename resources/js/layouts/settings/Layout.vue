@@ -12,8 +12,8 @@ import AppLogoIcon from '@/components/AppLogoIcon.vue';
 import { Button } from '@/components/ui/button';
 import { useCurrentUrl } from '@/composables/useCurrentUrl';
 import { toUrl } from '@/lib/utils';
-import { edit as editAppearance } from '@/routes/appearance';
 import { dashboard } from '@/routes';
+import { edit as editAppearance } from '@/routes/appearance';
 import { edit as editProfile } from '@/routes/profile';
 import { edit as editSecurity } from '@/routes/security';
 import type { NavItem } from '@/types';
@@ -39,23 +39,35 @@ const settingsNavItems: NavItem[] = [
 const page = usePage();
 const { isCurrentOrParentUrl } = useCurrentUrl();
 
-const user = computed(() => page.props.auth.user as { name?: string; email?: string });
+const user = computed(
+    () => page.props.auth.user as { name?: string; email?: string },
+);
 </script>
 
 <template>
     <main class="min-h-screen bg-slate-50 text-slate-950" dir="rtl">
-        <header class="border-b border-slate-200 bg-white/95 shadow-sm backdrop-blur">
-            <div class="mx-auto flex w-full max-w-7xl flex-col gap-4 px-4 py-4 sm:px-6 lg:px-8">
+        <header
+            class="border-b border-slate-200 bg-white/95 shadow-sm backdrop-blur"
+        >
+            <div
+                class="mx-auto flex w-full max-w-7xl flex-col gap-4 px-4 py-4 sm:px-6 lg:px-8"
+            >
                 <div class="flex flex-wrap items-center justify-between gap-4">
                     <div class="flex min-w-0 items-center gap-3">
-                        <div class="flex size-11 items-center justify-center rounded-2xl bg-blue-950 text-white shadow-sm">
+                        <div
+                            class="flex size-11 items-center justify-center rounded-2xl bg-blue-950 text-white shadow-sm"
+                        >
                             <AppLogoIcon class="size-7 fill-current" />
                         </div>
                         <div class="min-w-0">
-                            <p class="truncate text-sm font-black text-slate-950">
+                            <p
+                                class="truncate text-sm font-black text-slate-950"
+                            >
                                 منظومة إدارة المعهد
                             </p>
-                            <p class="truncate text-xs font-bold text-slate-500">
+                            <p
+                                class="truncate text-xs font-bold text-slate-500"
+                            >
                                 {{ user.email }}
                             </p>
                         </div>
@@ -75,7 +87,9 @@ const user = computed(() => page.props.auth.user as { name?: string; email?: str
                     </div>
                 </div>
 
-                <div class="flex flex-col gap-2 sm:flex-row sm:items-end sm:justify-between">
+                <div
+                    class="flex flex-col gap-2 sm:flex-row sm:items-end sm:justify-between"
+                >
                     <div>
                         <Link
                             :href="dashboard()"
@@ -84,7 +98,9 @@ const user = computed(() => page.props.auth.user as { name?: string; email?: str
                             <ArrowRight class="h-4 w-4" />
                             العودة للنظام
                         </Link>
-                        <h1 class="mt-3 text-2xl font-black tracking-normal text-slate-950 md:text-3xl">
+                        <h1
+                            class="mt-3 text-2xl font-black tracking-normal text-slate-950 md:text-3xl"
+                        >
                             إعدادات الحساب
                         </h1>
                         <p class="mt-1 text-sm font-bold text-slate-500">
@@ -92,7 +108,9 @@ const user = computed(() => page.props.auth.user as { name?: string; email?: str
                         </p>
                     </div>
 
-                    <div class="rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm font-bold text-slate-600">
+                    <div
+                        class="rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm font-bold text-slate-600"
+                    >
                         {{ user.name }}
                     </div>
                 </div>

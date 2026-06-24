@@ -90,7 +90,7 @@ const activeFiltersCount = computed(() => {
 </script>
 
 <template>
-    <div class="relative">
+    <div class="activity-filter-panel relative">
         <!-- Main filter card with glassmorphism -->
         <div
             class="overflow-hidden rounded-2xl border border-white/20 bg-white/80 shadow-xl backdrop-blur-md transition-all dark:bg-gray-800/80">
@@ -215,16 +215,3 @@ const activeFiltersCount = computed(() => {
         </div>
     </div>
 </template>
-
-<style scoped>
-/* Smooth transitions for inputs and selects */
-input,
-.select-trigger {
-    transition: all 0.2s ease;
-}
-
-/* Dark mode support for glassmorphism */
-.dark .bg-white\/80 {
-    background-color: rgba(31, 41, 55, 0.8);
-}
-</style>

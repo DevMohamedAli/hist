@@ -1,30 +1,33 @@
 <script setup lang="ts">
-import ArabicDatePicker from '@/components/ArabicDatePicker.vue'
+import ArabicDatePicker from '@/components/ArabicDatePicker.vue';
 
-withDefaults(defineProps<{
-    modelValue: string
-    id: string
-    label: string
-    error?: string
-    hint?: string
-    placeholder?: string
-    required?: boolean
-    disabled?: boolean
-    min?: string
-    max?: string
-}>(), {
-    error: '',
-    hint: '',
-    placeholder: 'اختر التاريخ',
-    required: false,
-    disabled: false,
-    min: '',
-    max: '',
-})
+withDefaults(
+    defineProps<{
+        modelValue: string;
+        id: string;
+        label: string;
+        error?: string;
+        hint?: string;
+        placeholder?: string;
+        required?: boolean;
+        disabled?: boolean;
+        min?: string;
+        max?: string;
+    }>(),
+    {
+        error: '',
+        hint: '',
+        placeholder: 'اختر التاريخ',
+        required: false,
+        disabled: false,
+        min: '',
+        max: '',
+    },
+);
 
 const emit = defineEmits<{
-    'update:modelValue': [value: string]
-}>()
+    'update:modelValue': [value: string];
+}>();
 </script>
 
 <template>

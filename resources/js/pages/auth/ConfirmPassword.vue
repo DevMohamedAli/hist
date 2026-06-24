@@ -29,7 +29,8 @@ const localizedError = (message?: string) => {
     const translations: Record<string, string> = {
         'The password field is required.': 'كلمة المرور مطلوبة للمتابعة.',
         'The provided password was incorrect.': 'كلمة المرور غير صحيحة.',
-        'This password does not match our records.': 'كلمة المرور غير مطابقة لسجلاتنا.',
+        'This password does not match our records.':
+            'كلمة المرور غير مطابقة لسجلاتنا.',
     };
 
     return translations[message] ?? message;
@@ -53,11 +54,10 @@ const localizedError = (message?: string) => {
                     <p class="text-xs font-extrabold text-orange-300">
                         مساحة آمنة
                     </p>
-                    <h1 class="mt-1 text-2xl font-extrabold">
-                        تأكيد الهوية
-                    </h1>
+                    <h1 class="mt-1 text-2xl font-extrabold">تأكيد الهوية</h1>
                     <p class="mt-2 text-sm leading-7 text-blue-100">
-                        أدخل كلمة المرور الحالية أو استخدم مفتاح المرور حتى نسمح بمتابعة الإجراء.
+                        أدخل كلمة المرور الحالية أو استخدم مفتاح المرور حتى نسمح
+                        بمتابعة الإجراء.
                     </p>
                 </div>
             </div>
@@ -69,7 +69,8 @@ const localizedError = (message?: string) => {
             >
                 <LockKeyhole class="mt-0.5 h-5 w-5 shrink-0 text-orange-600" />
                 <p class="text-sm leading-7 text-orange-900">
-                    لن يتم تغيير كلمة المرور هنا. هذه الصفحة فقط تؤكد أنك صاحب الحساب قبل الوصول إلى إعدادات أو عمليات حساسة.
+                    لن يتم تغيير كلمة المرور هنا. هذه الصفحة فقط تؤكد أنك صاحب
+                    الحساب قبل الوصول إلى إعدادات أو عمليات حساسة.
                 </p>
             </div>
 
@@ -91,7 +92,10 @@ const localizedError = (message?: string) => {
                 >
                     <div class="space-y-5">
                         <div class="grid gap-2 text-start">
-                            <Label for="password" class="font-bold text-gray-800">
+                            <Label
+                                for="password"
+                                class="font-bold text-gray-800"
+                            >
                                 كلمة المرور الحالية
                             </Label>
                             <PasswordInput
@@ -103,7 +107,9 @@ const localizedError = (message?: string) => {
                                 autofocus
                                 placeholder="أدخل كلمة المرور"
                             />
-                            <InputError :message="localizedError(errors.password)" />
+                            <InputError
+                                :message="localizedError(errors.password)"
+                            />
                         </div>
 
                         <Button
@@ -113,7 +119,11 @@ const localizedError = (message?: string) => {
                         >
                             <Spinner v-if="processing" />
                             <KeyRound v-else class="h-5 w-5" />
-                            {{ processing ? 'جارٍ التحقق...' : 'تأكيد والمتابعة' }}
+                            {{
+                                processing
+                                    ? 'جارٍ التحقق...'
+                                    : 'تأكيد والمتابعة'
+                            }}
                         </Button>
                     </div>
                 </Form>

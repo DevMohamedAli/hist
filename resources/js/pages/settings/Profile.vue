@@ -70,10 +70,12 @@ const primaryRole = computed(() => {
         student: 'طالب',
     };
 
-    return role ? labels[role] ?? role : 'حساب مستخدم';
+    return role ? (labels[role] ?? role) : 'حساب مستخدم';
 });
 
-const verificationLabel = computed(() => (user.value.email_verified_at ? 'موثق' : 'بانتظار التوثيق'));
+const verificationLabel = computed(() =>
+    user.value.email_verified_at ? 'موثق' : 'بانتظار التوثيق',
+);
 
 const onAvatarChange = (event: Event) => {
     const target = event.target as HTMLInputElement;
@@ -83,6 +85,7 @@ const onAvatarChange = (event: Event) => {
 
     if (!file) {
         avatarPreview.value = user.value.avatar ?? null;
+
         return;
     }
 
@@ -95,6 +98,7 @@ const submit = () => {
         preserveScroll: true,
         onSuccess: () => {
             form.avatar = null;
+
             if (fileInput.value) {
                 fileInput.value.value = '';
             }
@@ -107,32 +111,53 @@ const submit = () => {
     <Head title="إعدادات الملف الشخصي" />
 
     <main class="space-y-6" dir="rtl">
-        <section class="overflow-hidden rounded-3xl border border-slate-200 bg-white shadow-sm">
-            <div class="border-b border-slate-100 bg-blue-950 px-6 py-7 text-white md:px-8">
-                <div class="flex flex-col gap-6 lg:flex-row lg:items-center lg:justify-between">
+        <section
+            class="overflow-hidden rounded-3xl border border-slate-200 bg-white shadow-sm"
+        >
+            <div
+                class="border-b border-slate-100 bg-blue-950 px-6 py-7 text-white md:px-8"
+            >
+                <div
+                    class="flex flex-col gap-6 lg:flex-row lg:items-center lg:justify-between"
+                >
                     <div class="max-w-3xl">
-                        <p class="flex items-center gap-2 text-sm font-black text-orange-300">
+                        <p
+                            class="flex items-center gap-2 text-sm font-black text-orange-300"
+                        >
                             <Sparkles class="h-4 w-4" />
                             مساحة حسابك
                         </p>
-                        <h1 class="mt-3 text-3xl font-black tracking-normal md:text-4xl">
+                        <h1
+                            class="mt-3 text-3xl font-black tracking-normal md:text-4xl"
+                        >
                             إعدادات الملف الشخصي
                         </h1>
-                        <p class="mt-3 text-sm leading-7 text-blue-100 md:text-base">
-                            حدّث الاسم، البريد، والصورة الشخصية. هذه البيانات تظهر في أعلى النظام، سجل النشاط، ولوحات التحكم.
+                        <p
+                            class="mt-3 text-sm leading-7 text-blue-100 md:text-base"
+                        >
+                            حدّث الاسم، البريد، والصورة الشخصية. هذه البيانات
+                            تظهر في أعلى النظام، سجل النشاط، ولوحات التحكم.
                         </p>
                     </div>
 
                     <div class="grid grid-cols-2 gap-3 sm:min-w-80">
-                        <div class="rounded-2xl border border-white/10 bg-white/10 p-4">
-                            <p class="text-xs font-bold text-blue-100">نوع الحساب</p>
+                        <div
+                            class="rounded-2xl border border-white/10 bg-white/10 p-4"
+                        >
+                            <p class="text-xs font-bold text-blue-100">
+                                نوع الحساب
+                            </p>
                             <p class="mt-2 flex items-center gap-2 font-black">
                                 <ShieldCheck class="h-4 w-4 text-orange-300" />
                                 {{ primaryRole }}
                             </p>
                         </div>
-                        <div class="rounded-2xl border border-white/10 bg-white/10 p-4">
-                            <p class="text-xs font-bold text-blue-100">حالة البريد</p>
+                        <div
+                            class="rounded-2xl border border-white/10 bg-white/10 p-4"
+                        >
+                            <p class="text-xs font-bold text-blue-100">
+                                حالة البريد
+                            </p>
                             <p class="mt-2 flex items-center gap-2 font-black">
                                 <BadgeCheck class="h-4 w-4 text-emerald-300" />
                                 {{ verificationLabel }}
@@ -142,32 +167,52 @@ const submit = () => {
                 </div>
             </div>
 
-            <form class="grid lg:grid-cols-[minmax(0,1fr)_360px]" @submit.prevent="submit">
+            <form
+                class="grid lg:grid-cols-[minmax(0,1fr)_360px]"
+                @submit.prevent="submit"
+            >
                 <section class="space-y-6 p-6 md:p-8">
                     <div class="grid gap-4 md:grid-cols-2">
-                        <div class="rounded-2xl border border-slate-200 bg-slate-50 p-4">
-                            <p class="flex items-center gap-2 text-xs font-black text-slate-500">
+                        <div
+                            class="rounded-2xl border border-slate-200 bg-slate-50 p-4"
+                        >
+                            <p
+                                class="flex items-center gap-2 text-xs font-black text-slate-500"
+                            >
                                 <UserRound class="h-4 w-4 text-blue-700" />
                                 الاسم الحالي
                             </p>
-                            <p class="mt-2 truncate text-xl font-black text-slate-950">
+                            <p
+                                class="mt-2 truncate text-xl font-black text-slate-950"
+                            >
                                 {{ form.name || 'بدون اسم' }}
                             </p>
                         </div>
-                        <div class="rounded-2xl border border-slate-200 bg-slate-50 p-4">
-                            <p class="flex items-center gap-2 text-xs font-black text-slate-500">
+                        <div
+                            class="rounded-2xl border border-slate-200 bg-slate-50 p-4"
+                        >
+                            <p
+                                class="flex items-center gap-2 text-xs font-black text-slate-500"
+                            >
                                 <Mail class="h-4 w-4 text-blue-700" />
                                 البريد الحالي
                             </p>
-                            <p class="mt-2 truncate text-lg font-black text-slate-950">
+                            <p
+                                class="mt-2 truncate text-lg font-black text-slate-950"
+                            >
                                 {{ form.email }}
                             </p>
                         </div>
                     </div>
 
-                    <div class="grid gap-5 rounded-2xl border border-slate-200 p-5">
+                    <div
+                        class="grid gap-5 rounded-2xl border border-slate-200 p-5"
+                    >
                         <div class="space-y-2">
-                            <Label for="name" class="text-sm font-black text-slate-800">
+                            <Label
+                                for="name"
+                                class="text-sm font-black text-slate-800"
+                            >
                                 الاسم الكامل
                             </Label>
                             <Input
@@ -183,11 +228,16 @@ const submit = () => {
                         </div>
 
                         <div class="space-y-2">
-                            <Label for="email" class="text-sm font-black text-slate-800">
+                            <Label
+                                for="email"
+                                class="text-sm font-black text-slate-800"
+                            >
                                 البريد الإلكتروني
                             </Label>
                             <div class="relative">
-                                <Mail class="pointer-events-none absolute left-4 top-1/2 h-5 w-5 -translate-y-1/2 text-slate-400" />
+                                <Mail
+                                    class="pointer-events-none absolute top-1/2 left-4 h-5 w-5 -translate-y-1/2 text-slate-400"
+                                />
                                 <Input
                                     id="email"
                                     v-model="form.email"
@@ -204,10 +254,15 @@ const submit = () => {
                     </div>
 
                     <div
-                        v-if="page.props.mustVerifyEmail && !user.email_verified_at"
+                        v-if="
+                            page.props.mustVerifyEmail &&
+                            !user.email_verified_at
+                        "
                         class="rounded-2xl border border-amber-200 bg-amber-50 p-4 text-sm text-amber-900"
                     >
-                        <p class="font-black">البريد الإلكتروني غير موثق بعد.</p>
+                        <p class="font-black">
+                            البريد الإلكتروني غير موثق بعد.
+                        </p>
                         <Link
                             :href="send()"
                             as="button"
@@ -216,7 +271,9 @@ const submit = () => {
                             إرسال رابط التوثيق مرة أخرى
                         </Link>
                         <div
-                            v-if="page.props.status === 'verification-link-sent'"
+                            v-if="
+                                page.props.status === 'verification-link-sent'
+                            "
                             class="mt-3 flex items-center gap-2 font-bold text-emerald-700"
                         >
                             <CheckCircle2 class="h-4 w-4" />
@@ -224,7 +281,9 @@ const submit = () => {
                         </div>
                     </div>
 
-                    <div class="flex flex-col gap-3 border-t border-slate-100 pt-5 sm:flex-row sm:items-center">
+                    <div
+                        class="flex flex-col gap-3 border-t border-slate-100 pt-5 sm:flex-row sm:items-center"
+                    >
                         <Button
                             type="submit"
                             :disabled="form.processing"
@@ -232,7 +291,11 @@ const submit = () => {
                             class="h-12 gap-2 rounded-xl bg-orange-500 px-8 text-base font-black text-white shadow-lg shadow-orange-500/20 hover:bg-orange-600"
                         >
                             <Save class="h-5 w-5" />
-                            {{ form.processing ? 'جار الحفظ...' : 'حفظ التغييرات' }}
+                            {{
+                                form.processing
+                                    ? 'جار الحفظ...'
+                                    : 'حفظ التغييرات'
+                            }}
                         </Button>
                         <p class="text-xs font-semibold text-slate-500">
                             سيتم تحديث الصورة والبيانات فور الحفظ.
@@ -240,9 +303,13 @@ const submit = () => {
                     </div>
                 </section>
 
-                <aside class="border-t border-slate-100 bg-slate-50 p-6 md:p-8 lg:border-r lg:border-t-0">
+                <aside
+                    class="border-t border-slate-100 bg-slate-50 p-6 md:p-8 lg:border-t-0 lg:border-r"
+                >
                     <div class="sticky top-6 space-y-6">
-                        <div class="rounded-3xl border border-slate-200 bg-white p-6 text-center shadow-sm">
+                        <div
+                            class="rounded-3xl border border-slate-200 bg-white p-6 text-center shadow-sm"
+                        >
                             <div class="relative mx-auto h-44 w-44">
                                 <div
                                     class="flex h-full w-full items-center justify-center overflow-hidden rounded-full border-4 border-white bg-blue-100 text-5xl font-black text-blue-900 shadow-lg ring-1 ring-slate-200"
@@ -257,7 +324,7 @@ const submit = () => {
                                 </div>
                                 <button
                                     type="button"
-                                    class="absolute bottom-3 right-3 rounded-full bg-orange-500 p-3 text-white shadow-lg transition hover:bg-orange-600"
+                                    class="absolute right-3 bottom-3 rounded-full bg-orange-500 p-3 text-white shadow-lg transition hover:bg-orange-600"
                                     @click="fileInput?.click()"
                                     aria-label="تغيير الصورة الشخصية"
                                 >
@@ -274,8 +341,12 @@ const submit = () => {
                                 @change="onAvatarChange"
                             />
 
-                            <h2 class="mt-5 text-xl font-black text-slate-950">{{ form.name }}</h2>
-                            <p class="mt-1 text-sm font-bold text-slate-500">{{ primaryRole }}</p>
+                            <h2 class="mt-5 text-xl font-black text-slate-950">
+                                {{ form.name }}
+                            </h2>
+                            <p class="mt-1 text-sm font-bold text-slate-500">
+                                {{ primaryRole }}
+                            </p>
 
                             <Button
                                 type="button"
@@ -287,7 +358,10 @@ const submit = () => {
                                 اختيار صورة
                             </Button>
 
-                            <InputError class="mt-3 text-center" :message="form.errors.avatar" />
+                            <InputError
+                                class="mt-3 text-center"
+                                :message="form.errors.avatar"
+                            />
                             <p class="mt-3 text-xs leading-6 text-slate-500">
                                 PNG أو JPG أو WEBP. الحد الأقصى 2MB.
                             </p>
@@ -297,7 +371,9 @@ const submit = () => {
             </form>
         </section>
 
-        <section class="rounded-3xl border border-red-100 bg-white p-6 shadow-sm md:p-8">
+        <section
+            class="rounded-3xl border border-red-100 bg-white p-6 shadow-sm md:p-8"
+        >
             <DeleteUser />
         </section>
     </main>

@@ -36,25 +36,35 @@ const form = useForm({
 });
 
 const isEditing = computed(() => Boolean(props.item?.id));
-const modalTitle = computed(() => isEditing.value ? 'تعديل المؤهل' : 'إضافة مؤهل جديد');
-const modalDescription = computed(() => isEditing.value
-    ? 'حدّث بيانات المؤهل في جدول المؤهلات العام.'
-    : 'أدخل بيانات المؤهل ليصبح متاحاً للاستخدام في النظام.'
+const modalTitle = computed(() =>
+    isEditing.value ? 'تعديل المؤهل' : 'إضافة مؤهل جديد',
 );
-const modalIcon = computed(() => isEditing.value ? Edit3 : Plus);
-const submitButtonText = computed(() => isEditing.value ? 'تحديث المؤهل' : 'حفظ المؤهل');
+const modalDescription = computed(() =>
+    isEditing.value
+        ? 'حدّث بيانات المؤهل في جدول المؤهلات العام.'
+        : 'أدخل بيانات المؤهل ليصبح متاحاً للاستخدام في النظام.',
+);
+const modalIcon = computed(() => (isEditing.value ? Edit3 : Plus));
+const submitButtonText = computed(() =>
+    isEditing.value ? 'تحديث المؤهل' : 'حفظ المؤهل',
+);
 
-watch(() => props.item, (newItem) => {
-    if (newItem) {
-        form.degree_name = newItem.degree_name;
-        form.institution = newItem.institution;
+watch(
+    () => props.item,
+    (newItem) => {
+        if (newItem) {
+            form.degree_name = newItem.degree_name;
+            form.institution = newItem.institution;
+            form.clearErrors();
+
+            return;
+        }
+
+        form.reset();
         form.clearErrors();
-        return;
-    }
-
-    form.reset();
-    form.clearErrors();
-}, { immediate: true });
+    },
+    { immediate: true },
+);
 
 const submit = () => {
     const options = {
@@ -68,6 +78,7 @@ const submit = () => {
 
     if (isEditing.value && props.item) {
         form.patch(`/qualifications/${props.item.id}`, options);
+
         return;
     }
 
@@ -83,10 +94,17 @@ const closeModal = () => {
 
 <template>
     <Dialog :open="open" @update:open="(value) => !value && closeModal()">
-        <DialogContent class="max-h-[92vh] overflow-y-auto p-0 sm:max-w-2xl" dir="rtl">
+        <DialogContent
+            class="max-h-[92vh] overflow-y-auto p-0 sm:max-w-2xl"
+            dir="rtl"
+        >
             <DialogHeader class="border-b bg-slate-50 px-6 py-5 text-right">
-                <DialogTitle class="flex items-center gap-2 text-xl font-bold text-slate-950">
-                    <span class="flex h-10 w-10 items-center justify-center rounded-lg bg-blue-600 text-white">
+                <DialogTitle
+                    class="flex items-center gap-2 text-xl font-bold text-slate-950"
+                >
+                    <span
+                        class="flex h-10 w-10 items-center justify-center rounded-lg bg-blue-600 text-white"
+                    >
                         <component :is="modalIcon" class="h-5 w-5" />
                     </span>
                     {{ modalTitle }}
@@ -106,7 +124,10 @@ const closeModal = () => {
                             autocomplete="off"
                             placeholder="مثال: بكالوريوس، ماجستير، دكتوراه"
                         />
-                        <p v-if="form.errors.degree_name" class="text-xs font-semibold text-red-600">
+                        <p
+                            v-if="form.errors.degree_name"
+                            class="text-xs font-semibold text-red-600"
+                        >
                             {{ form.errors.degree_name }}
                         </p>
                     </div>
@@ -119,7 +140,10 @@ const closeModal = () => {
                             autocomplete="off"
                             placeholder="مثال: جامعة طرابلس"
                         />
-                        <p v-if="form.errors.institution" class="text-xs font-semibold text-red-600">
+                        <p
+                            v-if="form.errors.institution"
+                            class="text-xs font-semibold text-red-600"
+                        >
                             {{ form.errors.institution }}
                         </p>
                     </div>
@@ -129,7 +153,11 @@ const closeModal = () => {
                     <Button type="button" variant="outline" @click="closeModal">
                         إلغاء
                     </Button>
-                    <Button type="submit" :disabled="form.processing" class="bg-blue-700 text-white hover:bg-blue-800">
+                    <Button
+                        type="submit"
+                        :disabled="form.processing"
+                        class="bg-blue-700 text-white hover:bg-blue-800"
+                    >
                         {{ submitButtonText }}
                     </Button>
                 </DialogFooter>

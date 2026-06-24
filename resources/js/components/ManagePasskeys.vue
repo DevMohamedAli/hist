@@ -34,14 +34,18 @@ const handleRegisterSuccess = () => {
         class="space-y-5 rounded-3xl border border-slate-200 bg-white p-6 shadow-sm md:p-8"
         dir="rtl"
     >
-        <div class="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
+        <div
+            class="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between"
+        >
             <div class="flex items-start gap-3">
                 <div class="rounded-2xl bg-blue-50 p-3 text-blue-700">
                     <KeyRound class="h-6 w-6" />
                 </div>
                 <div>
-                    <h2 class="text-xl font-black text-slate-950">مفاتيح المرور</h2>
-                    <p class="mt-1 text-sm font-bold leading-6 text-slate-500">
+                    <h2 class="text-xl font-black text-slate-950">
+                        مفاتيح المرور
+                    </h2>
+                    <p class="mt-1 text-sm leading-6 font-bold text-slate-500">
                         سجّل الدخول ببصمة الجهاز أو رمز النظام بدل كلمة المرور.
                     </p>
                 </div>
@@ -49,7 +53,9 @@ const handleRegisterSuccess = () => {
             <PasskeyRegister @success="handleRegisterSuccess" />
         </div>
 
-        <div class="overflow-hidden rounded-2xl border border-slate-200 bg-white">
+        <div
+            class="overflow-hidden rounded-2xl border border-slate-200 bg-white"
+        >
             <template v-if="passkeys.length">
                 <PasskeyItem
                     v-for="passkey in passkeys"

@@ -72,21 +72,29 @@ const filteredQualifications = computed(() => {
         return qualifications.value;
     }
 
-    return qualifications.value.filter((qualification) => [
-        qualification.degree_name,
-        qualification.institution,
-    ].some((value) => (value || '').toLowerCase().includes(term)));
+    return qualifications.value.filter((qualification) =>
+        [qualification.degree_name, qualification.institution].some((value) =>
+            (value || '').toLowerCase().includes(term),
+        ),
+    );
 });
 
 const totalCount = computed(() => qualifications.value.length);
-const institutionsCount = computed(() => new Set(
-    qualifications.value
-        .map((qualification) => qualification.institution?.trim())
-        .filter(Boolean),
-).size);
+const institutionsCount = computed(
+    () =>
+        new Set(
+            qualifications.value
+                .map((qualification) => qualification.institution?.trim())
+                .filter(Boolean),
+        ).size,
+);
 const recentYear = computed(() => {
     const dates = qualifications.value
-        .map((qualification) => qualification.created_at ? new Date(qualification.created_at).getFullYear() : null)
+        .map((qualification) =>
+            qualification.created_at
+                ? new Date(qualification.created_at).getFullYear()
+                : null,
+        )
         .filter((year): year is number => Boolean(year));
 
     return dates.length ? Math.max(...dates) : null;
@@ -131,22 +139,36 @@ const clearSearch = () => {
 
     <div class="min-h-screen bg-slate-50" dir="rtl">
         <section class="border-b bg-white">
-            <div class="mx-auto flex max-w-7xl flex-col gap-6 px-4 py-6 sm:px-6 lg:px-8">
-                <div class="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
+            <div
+                class="mx-auto flex max-w-7xl flex-col gap-6 px-4 py-6 sm:px-6 lg:px-8"
+            >
+                <div
+                    class="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between"
+                >
                     <div class="space-y-2">
-                        <div class="flex items-center gap-2 text-sm font-semibold text-orange-600">
+                        <div
+                            class="flex items-center gap-2 text-sm font-semibold text-orange-600"
+                        >
                             <FileBadge class="h-4 w-4" />
                             وحدة المؤهلات
                         </div>
                         <div>
-                            <h1 class="text-2xl font-bold text-slate-950 md:text-3xl">جدول المؤهلات</h1>
+                            <h1
+                                class="text-2xl font-bold text-slate-950 md:text-3xl"
+                            >
+                                جدول المؤهلات
+                            </h1>
                             <p class="mt-1 text-sm text-slate-500">
-                                إدارة المؤهلات كبيانات مستقلة يمكن استخدامها لاحقاً مع الطلاب أو المحاضرين أو الموظفين.
+                                إدارة المؤهلات كبيانات مستقلة يمكن استخدامها
+                                لاحقاً مع الطلاب أو المحاضرين أو الموظفين.
                             </p>
                         </div>
                     </div>
 
-                    <Button class="gap-2 bg-blue-700 text-white hover:bg-blue-800" @click="openCreateModal">
+                    <Button
+                        class="gap-2 bg-blue-700 text-white hover:bg-blue-800"
+                        @click="openCreateModal"
+                    >
                         <Plus class="h-4 w-4" />
                         إضافة مؤهل
                     </Button>
@@ -155,53 +177,81 @@ const clearSearch = () => {
                 <div class="grid gap-3 md:grid-cols-3">
                     <div class="rounded-lg border bg-slate-50 p-4">
                         <div class="flex items-center justify-between">
-                            <p class="text-sm font-medium text-slate-500">إجمالي المؤهلات</p>
+                            <p class="text-sm font-medium text-slate-500">
+                                إجمالي المؤهلات
+                            </p>
                             <Award class="h-5 w-5 text-blue-700" />
                         </div>
-                        <p class="mt-3 text-3xl font-bold text-slate-950">{{ totalCount }}</p>
+                        <p class="mt-3 text-3xl font-bold text-slate-950">
+                            {{ totalCount }}
+                        </p>
                     </div>
                     <div class="rounded-lg border bg-slate-50 p-4">
                         <div class="flex items-center justify-between">
-                            <p class="text-sm font-medium text-slate-500">المؤسسات المانحة</p>
+                            <p class="text-sm font-medium text-slate-500">
+                                المؤسسات المانحة
+                            </p>
                             <BookOpenCheck class="h-5 w-5 text-emerald-700" />
                         </div>
-                        <p class="mt-3 text-3xl font-bold text-slate-950">{{ institutionsCount }}</p>
+                        <p class="mt-3 text-3xl font-bold text-slate-950">
+                            {{ institutionsCount }}
+                        </p>
                     </div>
                     <div class="rounded-lg border bg-slate-50 p-4">
                         <div class="flex items-center justify-between">
-                            <p class="text-sm font-medium text-slate-500">أحدث إضافة</p>
+                            <p class="text-sm font-medium text-slate-500">
+                                أحدث إضافة
+                            </p>
                             <CalendarDays class="h-5 w-5 text-orange-600" />
                         </div>
-                        <p class="mt-3 text-3xl font-bold text-slate-950">{{ recentYear || '—' }}</p>
+                        <p class="mt-3 text-3xl font-bold text-slate-950">
+                            {{ recentYear || '—' }}
+                        </p>
                     </div>
                 </div>
             </div>
         </section>
 
         <main class="mx-auto max-w-7xl px-4 py-6 sm:px-6 lg:px-8">
-            <div v-if="successMessage" class="mb-4 rounded-lg border border-emerald-200 bg-emerald-50 p-3">
-                <div class="flex items-center gap-2 text-sm font-semibold text-emerald-700">
+            <div
+                v-if="successMessage"
+                class="mb-4 rounded-lg border border-emerald-200 bg-emerald-50 p-3"
+            >
+                <div
+                    class="flex items-center gap-2 text-sm font-semibold text-emerald-700"
+                >
                     <CheckCircle2 class="h-5 w-5" />
                     {{ successMessage }}
                 </div>
             </div>
 
-            <div v-if="errorMessage" class="mb-4 rounded-lg border border-red-200 bg-red-50 p-3">
-                <div class="flex items-center gap-2 text-sm font-semibold text-red-700">
+            <div
+                v-if="errorMessage"
+                class="mb-4 rounded-lg border border-red-200 bg-red-50 p-3"
+            >
+                <div
+                    class="flex items-center gap-2 text-sm font-semibold text-red-700"
+                >
                     <XCircle class="h-5 w-5" />
                     {{ errorMessage }}
                 </div>
             </div>
 
             <div class="rounded-lg border bg-white shadow-sm">
-                <div class="flex flex-col gap-3 border-b p-4 md:flex-row md:items-center md:justify-between">
+                <div
+                    class="flex flex-col gap-3 border-b p-4 md:flex-row md:items-center md:justify-between"
+                >
                     <div>
                         <h2 class="font-bold text-slate-950">قائمة المؤهلات</h2>
-                        <p class="text-sm text-slate-500">ابحث وعدّل المؤهلات المسجلة في جدول النظام العام.</p>
+                        <p class="text-sm text-slate-500">
+                            ابحث وعدّل المؤهلات المسجلة في جدول النظام العام.
+                        </p>
                     </div>
 
                     <div class="relative w-full md:w-96">
-                        <Search class="absolute right-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
+                        <Search
+                            class="absolute top-1/2 right-3 h-4 w-4 -translate-y-1/2 text-slate-400"
+                        />
                         <Input
                             v-model="search"
                             class="pr-9"
@@ -210,7 +260,7 @@ const clearSearch = () => {
                         <button
                             v-if="search"
                             type="button"
-                            class="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-700"
+                            class="absolute top-1/2 left-3 -translate-y-1/2 text-slate-400 hover:text-slate-700"
                             @click="clearSearch"
                         >
                             <X class="h-4 w-4" />
@@ -223,23 +273,34 @@ const clearSearch = () => {
                         <TableHeader>
                             <TableRow class="bg-slate-50">
                                 <TableHead class="text-right">المؤهل</TableHead>
-                                <TableHead class="text-right">المؤسسة</TableHead>
-                                <TableHead class="text-center">الإجراءات</TableHead>
+                                <TableHead class="text-right"
+                                    >المؤسسة</TableHead
+                                >
+                                <TableHead class="text-center"
+                                    >الإجراءات</TableHead
+                                >
                             </TableRow>
                         </TableHeader>
                         <TableBody>
-                            <TableRow v-for="qualification in filteredQualifications" :key="qualification.id">
+                            <TableRow
+                                v-for="qualification in filteredQualifications"
+                                :key="qualification.id"
+                            >
                                 <TableCell class="font-semibold text-slate-950">
                                     {{ qualification.degree_name }}
                                 </TableCell>
-                                <TableCell>{{ qualification.institution }}</TableCell>
+                                <TableCell>{{
+                                    qualification.institution
+                                }}</TableCell>
                                 <TableCell>
                                     <div class="flex justify-center gap-1">
                                         <Button
                                             variant="ghost"
                                             size="icon"
                                             class="h-8 w-8 text-blue-700 hover:bg-blue-50"
-                                            @click="openEditModal(qualification)"
+                                            @click="
+                                                openEditModal(qualification)
+                                            "
                                         >
                                             <Edit3 class="h-4 w-4" />
                                         </Button>
@@ -247,15 +308,22 @@ const clearSearch = () => {
                                             variant="ghost"
                                             size="icon"
                                             class="h-8 w-8 text-red-600 hover:bg-red-50"
-                                            @click="openDeleteModal(qualification)"
+                                            @click="
+                                                openDeleteModal(qualification)
+                                            "
                                         >
                                             <Trash2 class="h-4 w-4" />
                                         </Button>
                                     </div>
                                 </TableCell>
                             </TableRow>
-                            <TableRow v-if="filteredQualifications.length === 0">
-                                <TableCell colspan="3" class="py-14 text-center text-slate-500">
+                            <TableRow
+                                v-if="filteredQualifications.length === 0"
+                            >
+                                <TableCell
+                                    colspan="3"
+                                    class="py-14 text-center text-slate-500"
+                                >
                                     لا توجد مؤهلات مطابقة للبحث الحالي.
                                 </TableCell>
                             </TableRow>
@@ -271,21 +339,38 @@ const clearSearch = () => {
                     >
                         <div class="flex items-start justify-between gap-3">
                             <div>
-                                <p class="font-bold text-slate-950">{{ qualification.degree_name }}</p>
-                                <p class="text-sm text-slate-500">{{ qualification.institution }}</p>
+                                <p class="font-bold text-slate-950">
+                                    {{ qualification.degree_name }}
+                                </p>
+                                <p class="text-sm text-slate-500">
+                                    {{ qualification.institution }}
+                                </p>
                             </div>
                             <div class="flex gap-1">
-                                <Button variant="ghost" size="icon" class="h-8 w-8 text-blue-700" @click="openEditModal(qualification)">
+                                <Button
+                                    variant="ghost"
+                                    size="icon"
+                                    class="h-8 w-8 text-blue-700"
+                                    @click="openEditModal(qualification)"
+                                >
                                     <Edit3 class="h-4 w-4" />
                                 </Button>
-                                <Button variant="ghost" size="icon" class="h-8 w-8 text-red-600" @click="openDeleteModal(qualification)">
+                                <Button
+                                    variant="ghost"
+                                    size="icon"
+                                    class="h-8 w-8 text-red-600"
+                                    @click="openDeleteModal(qualification)"
+                                >
                                     <Trash2 class="h-4 w-4" />
                                 </Button>
                             </div>
                         </div>
                     </div>
 
-                    <div v-if="filteredQualifications.length === 0" class="p-10 text-center text-sm text-slate-500">
+                    <div
+                        v-if="filteredQualifications.length === 0"
+                        class="p-10 text-center text-sm text-slate-500"
+                    >
                         لا توجد مؤهلات مطابقة للبحث الحالي.
                     </div>
                 </div>
@@ -301,8 +386,14 @@ const clearSearch = () => {
         <QualificationModal
             :open="showEditModal"
             :item="editingItem"
-            @close="showEditModal = false; editingItem = null"
-            @success="showEditModal = false; editingItem = null"
+            @close="
+                showEditModal = false;
+                editingItem = null;
+            "
+            @success="
+                showEditModal = false;
+                editingItem = null;
+            "
         />
 
         <Dialog v-model:open="showDeleteModal">
@@ -313,14 +404,18 @@ const clearSearch = () => {
                         حذف المؤهل
                     </DialogTitle>
                     <DialogDescription>
-                        هل تريد حذف مؤهل "{{ deletingItem?.degree_name }}"؟ لا يمكن التراجع عن هذا الإجراء.
+                        هل تريد حذف مؤهل "{{ deletingItem?.degree_name }}"؟ لا
+                        يمكن التراجع عن هذا الإجراء.
                     </DialogDescription>
                 </DialogHeader>
                 <DialogFooter class="gap-2">
                     <Button variant="outline" @click="showDeleteModal = false">
                         إلغاء
                     </Button>
-                    <Button class="bg-red-600 text-white hover:bg-red-700" @click="confirmDelete">
+                    <Button
+                        class="bg-red-600 text-white hover:bg-red-700"
+                        @click="confirmDelete"
+                    >
                         حذف
                     </Button>
                 </DialogFooter>

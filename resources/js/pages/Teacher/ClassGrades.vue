@@ -59,7 +59,8 @@ const totalFor = (enrollmentId: number) => {
 
     return Math.min(
         100,
-        Number(grade?.semester_work_grade || 0) + Number(grade?.final_exam_grade || 0),
+        Number(grade?.semester_work_grade || 0) +
+            Number(grade?.final_exam_grade || 0),
     );
 };
 
@@ -73,11 +74,25 @@ const fieldError = (
 };
 
 const regulationEvaluationFor = (total: number) => {
-    if (total >= 85) return 'ممتاز';
-    if (total >= 75) return 'جيد جداً';
-    if (total >= 65) return 'جيد';
-    if (total >= 50) return 'مقبول';
-    if (total >= 35) return 'ضعيف';
+    if (total >= 85) {
+return 'ممتاز';
+}
+
+    if (total >= 75) {
+return 'جيد جداً';
+}
+
+    if (total >= 65) {
+return 'جيد';
+}
+
+    if (total >= 50) {
+return 'مقبول';
+}
+
+    if (total >= 35) {
+return 'ضعيف';
+}
 
     return 'ضعيف جداً';
 };
@@ -113,7 +128,10 @@ const submit = () => {
                             ÙƒØ´Ù Ø±ØµØ¯ Ø§Ù„Ø¯Ø±Ø¬Ø§Øª
                         </p>
                         <h1 class="mt-1 text-2xl font-extrabold text-blue-800">
-                            {{ courseClass.course?.name ?? 'Ù…Ù‚Ø±Ø± ØºÙŠØ± Ù…Ø­Ø¯Ø¯' }}
+                            {{
+                                courseClass.course?.name ??
+                                'Ù…Ù‚Ø±Ø± ØºÙŠØ± Ù…Ø­Ø¯Ø¯'
+                            }}
                         </h1>
                         <div
                             class="mt-3 grid gap-3 text-sm text-gray-600 sm:grid-cols-2 lg:grid-cols-4"
@@ -187,16 +205,24 @@ const submit = () => {
                     <table class="w-full min-w-[860px] text-sm">
                         <thead class="bg-blue-800 text-white">
                             <tr>
-                                <th class="px-5 py-4 text-start">Ø§Ø³Ù… Ø§Ù„Ø·Ø§Ù„Ø¨</th>
-                                <th class="px-5 py-4 text-start">Ø±Ù‚Ù… Ø§Ù„Ù‚ÙŠØ¯</th>
+                                <th class="px-5 py-4 text-start">
+                                    Ø§Ø³Ù… Ø§Ù„Ø·Ø§Ù„Ø¨
+                                </th>
+                                <th class="px-5 py-4 text-start">
+                                    Ø±Ù‚Ù… Ø§Ù„Ù‚ÙŠØ¯
+                                </th>
                                 <th class="px-5 py-4 text-center">
                                     Ø£Ø¹Ù…Ø§Ù„ Ø§Ù„ÙØµÙ„
                                 </th>
                                 <th class="px-5 py-4 text-center">
                                     Ø§Ù„Ø§Ù…ØªØ­Ø§Ù† Ø§Ù„Ù†Ù‡Ø§Ø¦ÙŠ
                                 </th>
-                                <th class="px-5 py-4 text-center">Ø§Ù„Ù…Ø¬Ù…ÙˆØ¹</th>
-                                <th class="px-5 py-4 text-center">Ø§Ù„ØªÙ‚Ø¯ÙŠØ±</th>
+                                <th class="px-5 py-4 text-center">
+                                    Ø§Ù„Ù…Ø¬Ù…ÙˆØ¹
+                                </th>
+                                <th class="px-5 py-4 text-center">
+                                    Ø§Ù„ØªÙ‚Ø¯ÙŠØ±
+                                </th>
                             </tr>
                         </thead>
                         <tbody class="divide-y divide-gray-100">
@@ -291,7 +317,8 @@ const submit = () => {
                                     colspan="6"
                                     class="px-5 py-12 text-center text-gray-500"
                                 >
-                                    Ù„Ø§ ÙŠÙˆØ¬Ø¯ Ø·Ù„Ø§Ø¨ Ù…Ø³Ø¬Ù„ÙˆÙ† ÙÙŠ Ù‡Ø°Ù‡ Ø§Ù„Ù…Ø¬Ù…ÙˆØ¹Ø© Ø§Ù„Ø¯Ø±Ø§Ø³ÙŠØ©
+                                    Ù„Ø§ ÙŠÙˆØ¬Ø¯ Ø·Ù„Ø§Ø¨ Ù…Ø³Ø¬Ù„ÙˆÙ† ÙÙŠ
+                                    Ù‡Ø°Ù‡ Ø§Ù„Ù…Ø¬Ù…ÙˆØ¹Ø© Ø§Ù„Ø¯Ø±Ø§Ø³ÙŠØ©
                                     Ù„Ù‡Ø°Ø§ Ø§Ù„Ù…Ù‚Ø±Ø± Ø­Ø§Ù„ÙŠØ§.
                                 </td>
                             </tr>
@@ -303,7 +330,8 @@ const submit = () => {
                     class="flex flex-wrap items-center justify-between gap-3 border-t bg-gray-50 p-5"
                 >
                     <p class="text-sm text-gray-600">
-                        Ø³ÙŠØªÙ… Ø­ÙØ¸ Ø§Ù„Ø¯Ø±Ø¬Ø§Øª Ù„Ù„Ø·Ù„Ø§Ø¨ Ø§Ù„Ù…Ø³Ø¬Ù„ÙŠÙ† ÙÙŠ Ù‡Ø°Ù‡ Ø§Ù„Ù…Ø¬Ù…ÙˆØ¹Ø©
+                        Ø³ÙŠØªÙ… Ø­ÙØ¸ Ø§Ù„Ø¯Ø±Ø¬Ø§Øª Ù„Ù„Ø·Ù„Ø§Ø¨
+                        Ø§Ù„Ù…Ø³Ø¬Ù„ÙŠÙ† ÙÙŠ Ù‡Ø°Ù‡ Ø§Ù„Ù…Ø¬Ù…ÙˆØ¹Ø©
                         Ø§Ù„Ø¯Ø±Ø§Ø³ÙŠØ© ÙÙ‚Ø·.
                     </p>
                     <button
@@ -323,4 +351,3 @@ const submit = () => {
         </div>
     </main>
 </template>
-

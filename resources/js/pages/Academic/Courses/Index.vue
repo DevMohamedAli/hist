@@ -1,24 +1,24 @@
 <script setup lang="ts">
 import { Head, Link, router } from '@inertiajs/vue3';
 import {
+    Award,
     BookOpen,
-    Plus,
-    Eye,
-    Pencil,
-    Trash2,
-    Search,
-    X,
+    CheckCircle2,
     ChevronLeft,
     ChevronRight,
-    Sparkles,
+    Eye,
     Filter,
-    CheckCircle2,
-    XCircle,
     GraduationCap,
-    Award,
     Layers,
+    Pencil,
+    Plus,
+    Search,
+    SlidersHorizontal,
+    Trash2,
+    X,
+    XCircle,
 } from 'lucide-vue-next';
-import { ref, watch, onMounted, onUnmounted } from 'vue';
+import { computed, ref, watch } from 'vue';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import {
@@ -47,9 +47,16 @@ import {
     TableRow,
 } from '@/components/ui/table';
 
-interface Specialization {
+interface Department {
     id: number;
     name: string;
+}
+
+interface Specialization {
+    id: number;
+    department_id?: number;
+    name: string;
+    department?: Department | null;
     pivot?: { semester_level: number };
 }
 
@@ -65,6 +72,8 @@ interface Course {
     name: string;
     units: number;
     has_practical: boolean | number;
+    specializations_count?: number;
+    prerequisites_count?: number;
     specializations?: Specialization[];
     prerequisites?: Prerequisite[];
 }
@@ -75,58 +84,276 @@ interface PaginatedCourses {
     last_page: number;
     per_page: number;
     total: number;
+    from?: number | null;
+    to?: number | null;
     links: { url: string | null; label: string; active: boolean }[];
 }
 
+type CourseFilters = {
+    search?: string;
+    department?: string;
+    specialization?: string;
+    semester_level?: string;
+    units?: string;
+    has_practical?: boolean | string;
+    prerequisite_status?: string;
+    curriculum_status?: string;
+    sort?: string;
+    direction?: string;
+    per_page?: number;
+};
+
+const sortOptions = ['code', 'name', 'units', 'specializations', 'created_at'] as const;
+type SortOption = (typeof sortOptions)[number];
+
 const props = defineProps<{
     courses: PaginatedCourses;
-    filters: {
-        search?: string;
-        specialization?: string;
-        units?: string;
-        has_practical?: boolean | string;
-        per_page?: number;
-    };
+    filters: CourseFilters;
+    departments: Department[];
     specializations: Specialization[];
+    unitOptions: number[];
+    semesterLevels: number[];
 }>();
 
-// Local filter state
 const search = ref(props.filters.search || '');
+const selectedDepartment = ref(props.filters.department || 'all');
 const selectedSpecialization = ref(props.filters.specialization || 'all');
-const selectedUnits = ref(props.filters.units || '');
-const selectedPractical = ref(props.filters.has_practical?.toString() || '');
+const selectedLevel = ref(props.filters.semester_level || 'all');
+const selectedUnits = ref(props.filters.units || 'all');
+const selectedPractical = ref(props.filters.has_practical?.toString() || 'all');
+const selectedPrerequisites = ref(props.filters.prerequisite_status || 'any');
+const selectedCurriculum = ref(props.filters.curriculum_status || 'any');
+const normalizeSort = (value: unknown): SortOption => {
+    return typeof value === 'string' && sortOptions.includes(value as SortOption) ? value as SortOption : 'code';
+};
 
-// Debounced filter application
-let timeout: ReturnType<typeof setTimeout>;
-const applyFilters = () => {
-    clearTimeout(timeout);
-    timeout = setTimeout(() => {
-        router.get('/academic/courses', {
-            search: search.value,
-            specialization: selectedSpecialization.value === 'all' ? '' : selectedSpecialization.value,
-            units: selectedUnits.value === 'all' ? '' : selectedUnits.value,
-            has_practical: selectedPractical.value === 'all' ? '' : selectedPractical.value,
-            per_page: props.filters.per_page || 25,
-        }, {
+const selectedSort = ref<SortOption>(normalizeSort(props.filters.sort));
+const selectedDirection = ref(props.filters.direction || 'asc');
+const selectedPerPage = ref(String(props.filters.per_page || props.courses.per_page || 25));
+
+const showDeleteModal = ref(false);
+const deletingCourse = ref<Course | null>(null);
+let timeout: ReturnType<typeof setTimeout> | null = null;
+let skipNextAutoApply = false;
+
+const filteredSpecializations = computed(() => {
+    if (selectedDepartment.value === 'all') {
+        return props.specializations;
+    }
+
+    return props.specializations.filter(
+        (specialization) => String(specialization.department_id) === selectedDepartment.value,
+    );
+});
+
+const activeFilters = computed(() => {
+    const items: { key: string; label: string; clear: () => void }[] = [];
+    const department = props.departments.find((item) => String(item.id) === selectedDepartment.value);
+    const specialization = props.specializations.find((item) => String(item.id) === selectedSpecialization.value);
+    const sortLabels: Record<string, string> = {
+        code: 'الرمز',
+        name: 'اسم المقرر',
+        units: 'الوحدات',
+        specializations: 'عدد الخطط',
+        created_at: 'الأحدث إضافة',
+    };
+
+    if (search.value.trim()) {
+        items.push({
+            key: 'search',
+            label: `بحث: ${search.value}`,
+            clear: () => {
+                search.value = '';
+                applyFiltersImmediately();
+            },
+        });
+    }
+
+    if (department) {
+        items.push({
+            key: 'department',
+            label: `القسم: ${department.name}`,
+            clear: () => {
+                selectedDepartment.value = 'all';
+                applyFiltersImmediately();
+            },
+        });
+    }
+
+    if (specialization) {
+        items.push({
+            key: 'specialization',
+            label: `التخصص: ${specialization.name}`,
+            clear: () => {
+                selectedSpecialization.value = 'all';
+                applyFiltersImmediately();
+            },
+        });
+    }
+
+    if (selectedLevel.value !== 'all') {
+        items.push({
+            key: 'level',
+            label: `المستوى: ${selectedLevel.value}`,
+            clear: () => {
+                selectedLevel.value = 'all';
+                applyFiltersImmediately();
+            },
+        });
+    }
+
+    if (selectedUnits.value !== 'all') {
+        items.push({
+            key: 'units',
+            label: `الوحدات: ${selectedUnits.value}`,
+            clear: () => {
+                selectedUnits.value = 'all';
+                applyFiltersImmediately();
+            },
+        });
+    }
+
+    if (selectedPractical.value !== 'all') {
+        items.push({
+            key: 'practical',
+            label: selectedPractical.value === '1' ? 'عملي' : 'نظري فقط',
+            clear: () => {
+                selectedPractical.value = 'all';
+                applyFiltersImmediately();
+            },
+        });
+    }
+
+    if (selectedPrerequisites.value !== 'any') {
+        items.push({
+            key: 'prerequisites',
+            label: selectedPrerequisites.value === 'with' ? 'له متطلبات' : 'بدون متطلبات',
+            clear: () => {
+                selectedPrerequisites.value = 'any';
+                applyFiltersImmediately();
+            },
+        });
+    }
+
+    if (selectedCurriculum.value !== 'any') {
+        items.push({
+            key: 'curriculum',
+            label: selectedCurriculum.value === 'assigned' ? 'ضمن خطة' : 'غير مرتبط بخطة',
+            clear: () => {
+                selectedCurriculum.value = 'any';
+                applyFiltersImmediately();
+            },
+        });
+    }
+
+    if (selectedSort.value !== 'code') {
+        items.push({
+            key: 'sort',
+            label: `الفرز: ${sortLabels[selectedSort.value] ?? selectedSort.value}`,
+            clear: () => {
+                selectedSort.value = 'code';
+                applyFiltersImmediately();
+            },
+        });
+    }
+
+    if (selectedDirection.value !== 'asc') {
+        items.push({
+            key: 'direction',
+            label: `الاتجاه: ${selectedDirection.value === 'asc' ? 'تصاعدي' : 'تنازلي'}`,
+            clear: () => {
+                selectedDirection.value = 'asc';
+                applyFiltersImmediately();
+            },
+        });
+    }
+
+    if (selectedPerPage.value !== '25') {
+        items.push({
+            key: 'per_page',
+            label: `عدد الصفوف: ${selectedPerPage.value}`,
+            clear: () => {
+                selectedPerPage.value = '25';
+                applyFiltersImmediately();
+            },
+        });
+    }
+
+    return items;
+});
+
+const buildParams = () => ({
+    search: search.value || undefined,
+    department: selectedDepartment.value === 'all' ? undefined : selectedDepartment.value,
+    specialization: selectedSpecialization.value === 'all' ? undefined : selectedSpecialization.value,
+    semester_level: selectedLevel.value === 'all' ? undefined : selectedLevel.value,
+    units: selectedUnits.value === 'all' ? undefined : selectedUnits.value,
+    has_practical: selectedPractical.value === 'all' ? undefined : selectedPractical.value,
+    prerequisite_status: selectedPrerequisites.value === 'any' ? undefined : selectedPrerequisites.value,
+    curriculum_status: selectedCurriculum.value === 'any' ? undefined : selectedCurriculum.value,
+    sort: selectedSort.value === 'code' ? undefined : selectedSort.value,
+    direction: selectedDirection.value === 'asc' ? undefined : selectedDirection.value,
+    per_page: selectedPerPage.value === '25' ? undefined : selectedPerPage.value,
+});
+
+const applyFilters = (delay = 350) => {
+    if (timeout) {
+        clearTimeout(timeout);
+    }
+
+    if (delay <= 0) {
+        router.get('/academic/courses', buildParams(), {
             preserveState: true,
             preserveScroll: true,
+            replace: true,
         });
-    }, 400);
+
+        return;
+    }
+
+    timeout = setTimeout(() => {
+        router.get('/academic/courses', buildParams(), {
+            preserveState: true,
+            preserveScroll: true,
+            replace: true,
+        });
+    }, delay);
+};
+
+const applyFiltersImmediately = () => {
+    if (timeout) {
+        clearTimeout(timeout);
+        timeout = null;
+    }
+
+    skipNextAutoApply = true;
+    applyFilters(0);
+};
+
+const setSelectedSort = (value: unknown) => {
+    selectedSort.value = normalizeSort(value);
 };
 
 const resetFilters = () => {
     search.value = '';
+    selectedDepartment.value = 'all';
     selectedSpecialization.value = 'all';
-    selectedUnits.value = '';
-    selectedPractical.value = '';
-    applyFilters();
+    selectedLevel.value = 'all';
+    selectedUnits.value = 'all';
+    selectedPractical.value = 'all';
+    selectedPrerequisites.value = 'any';
+    selectedCurriculum.value = 'any';
+    selectedSort.value = 'code';
+    selectedDirection.value = 'asc';
+    selectedPerPage.value = '25';
+    applyFiltersImmediately();
 };
 
-watch([search, selectedSpecialization, selectedUnits, selectedPractical], applyFilters);
-
-// Delete modal
-const showDeleteModal = ref(false);
-const deletingCourse = ref<Course | null>(null);
+const changePage = (url: string | null) => {
+    if (url) {
+        router.visit(url, { preserveScroll: true, preserveState: true });
+    }
+};
 
 const openDeleteModal = (course: Course) => {
     deletingCourse.value = course;
@@ -134,33 +361,19 @@ const openDeleteModal = (course: Course) => {
 };
 
 const confirmDelete = () => {
-    if (deletingCourse.value) {
-        router.delete(`/academic/courses/${deletingCourse.value.id}`, {
-            preserveScroll: true,
-            onSuccess: () => {
-                showDeleteModal.value = false;
-                deletingCourse.value = null;
-            },
-        });
+    if (!deletingCourse.value) {
+        return;
     }
+
+    router.delete(`/academic/courses/${deletingCourse.value.id}`, {
+        preserveScroll: true,
+        onSuccess: () => {
+            showDeleteModal.value = false;
+            deletingCourse.value = null;
+        },
+    });
 };
 
-// Pagination
-const changePage = (url: string | null) => {
-    if (url) {
-        window.location.href = url;
-    }
-};
-
-// Scroll for floating action button
-const isScrolled = ref(false);
-const handleScroll = () => {
-    isScrolled.value = window.scrollY > 200;
-};
-onMounted(() => window.addEventListener('scroll', handleScroll));
-onUnmounted(() => window.removeEventListener('scroll', handleScroll));
-
-// Helper for unit badge color
 const getUnitBadgeClass = (units: number) => {
     if (units <= 2) {
         return 'bg-emerald-100 text-emerald-800';
@@ -170,328 +383,379 @@ const getUnitBadgeClass = (units: number) => {
         return 'bg-blue-100 text-blue-800';
     }
 
-    return 'bg-purple-100 text-purple-800';
+    return 'bg-violet-100 text-violet-800';
 };
+
+const previousUrl = computed(() => props.courses.links.find((link) => link.label.includes('Previous'))?.url || null);
+const nextUrl = computed(() => props.courses.links.find((link) => link.label.includes('Next'))?.url || null);
+
+watch(selectedDepartment, () => {
+    if (
+        selectedSpecialization.value !== 'all'
+        && !filteredSpecializations.value.some((item) => String(item.id) === selectedSpecialization.value)
+    ) {
+        selectedSpecialization.value = 'all';
+    }
+});
+
+watch(
+    [
+        search,
+        selectedDepartment,
+        selectedSpecialization,
+        selectedLevel,
+        selectedUnits,
+        selectedPractical,
+        selectedPrerequisites,
+        selectedCurriculum,
+        selectedSort,
+        selectedDirection,
+        selectedPerPage,
+    ],
+    () => {
+        if (skipNextAutoApply) {
+            skipNextAutoApply = false;
+
+            return;
+        }
+
+        applyFilters();
+    },
+);
 </script>
 
 <template>
-
     <Head title="إدارة المقررات الدراسية" />
 
-    <div class="min-h-screen bg-linear-to-br from-slate-50 to-blue-50/30 p-4 md:p-6" dir="rtl">
-        <!-- Animated gradient header -->
-        <div
-            class="relative mb-8 overflow-hidden rounded-2xl bg-linear-to-l from-blue-900 via-blue-800 to-orange-600 p-6 shadow-xl">
-            <div
-                class="absolute inset-0 bg-[radial-gradient(circle_at_center,rgba(255,255,255,0.1)_1px,transparent_1px)] bg-size-[20px_20px]">
-            </div>
-            <div class="relative flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
+    <main class="min-h-screen bg-slate-50 p-4 sm:p-6 lg:p-8" dir="rtl">
+        <div class="mx-auto max-w-7xl space-y-5">
+            <section class="flex flex-col gap-4 border-b border-slate-200 pb-5 lg:flex-row lg:items-center lg:justify-between">
                 <div>
-                    <h1 class="flex items-center gap-2 text-3xl font-extrabold text-white drop-shadow-md">
-                        <BookOpen class="h-7 w-7 text-orange-300 animate-pulse" />
+                    <p class="text-sm font-bold text-orange-600">الوحدة الأكاديمية</p>
+                    <h1 class="mt-1 flex items-center gap-2 text-2xl font-black text-blue-950">
+                        <BookOpen class="h-6 w-6 text-blue-800" />
                         إدارة المقررات الدراسية
                     </h1>
-                    <p class="mt-1 text-blue-100">إدارة المقررات وربطها بالخطط الدراسية للتخصصات</p>
+                    <p class="mt-2 max-w-3xl text-sm leading-7 text-slate-600">
+                        تصفية المقررات حسب الخطة الدراسية، المستوى، الوحدات، المتطلبات السابقة، ونوع المقرر.
+                    </p>
                 </div>
-                <div class="flex items-center gap-3">
-                    <div class="rounded-2xl bg-white/20 px-5 py-2 backdrop-blur-sm text-center">
-                        <p class="text-xs font-semibold text-blue-100">إجمالي المقررات</p>
-                        <p class="text-3xl font-extrabold text-white">{{ props.courses.total }}</p>
+
+                <div class="flex flex-wrap items-center gap-3">
+                    <div class="rounded-md border border-blue-100 bg-white px-4 py-2 text-center shadow-sm">
+                        <p class="text-xs font-bold text-slate-500">نتائج البحث</p>
+                        <p class="text-xl font-black text-blue-950">{{ courses.total }}</p>
                     </div>
                     <Link href="/academic/courses/create">
-                        <Button class="gap-2 bg-orange-500 text-white shadow-lg hover:bg-orange-600 transition-all">
+                        <Button class="gap-2 bg-orange-500 text-white hover:bg-orange-600">
                             <Plus class="h-4 w-4" />
                             مقرر جديد
                         </Button>
                     </Link>
                 </div>
-            </div>
-        </div>
+            </section>
 
-        <!-- Filter Panel with Filter icon -->
-        <div
-            class="mb-6 overflow-hidden rounded-2xl border border-white/20 bg-white/80 shadow-xl backdrop-blur-md dark:bg-gray-800/80 p-4">
-            <div class="flex items-center gap-2 mb-3">
-                <Filter class="h-5 w-5 text-orange-500" />
-                <span class="font-semibold text-gray-700">فلاتر البحث</span>
-            </div>
-            <div class="flex flex-wrap items-end gap-4">
-                <div class="flex-1 min-w-45">
-                    <Label class="text-sm font-medium">بحث</Label>
-                    <div class="relative mt-1">
-                        <Search class="absolute right-3 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-400" />
-                        <Input v-model="search" placeholder="الرمز أو اسم المقرر..." class="pr-9" />
+            <section class="rounded-md border border-slate-200 bg-white p-4 shadow-sm">
+                <div class="mb-4 flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
+                    <div class="flex items-center gap-2">
+                        <Filter class="h-5 w-5 text-blue-800" />
+                        <h2 class="text-base font-black text-slate-950">الفلاتر والفرز</h2>
                     </div>
-                </div>
-                <div class="w-48">
-                    <Label class="text-sm font-medium">التخصص</Label>
-                    <Select v-model="selectedSpecialization">
-                        <SelectTrigger class="mt-1">
-                            <SelectValue placeholder="الكل" />
-                        </SelectTrigger>
-                        <SelectContent>
-                            <SelectItem value="all">الكل</SelectItem>
-                            <SelectItem v-for="spec in specializations" :key="spec.id" :value="String(spec.id)">
-                                {{ spec.name }}
-                            </SelectItem>
-                        </SelectContent>
-                    </Select>
-                </div>
-                <div class="w-32">
-                    <Label class="text-sm font-medium">الوحدات</Label>
-                    <Select v-model="selectedUnits">
-                        <SelectTrigger class="mt-1">
-                            <SelectValue placeholder="الكل" />
-                        </SelectTrigger>
-                        <SelectContent>
-                            <SelectItem value="all">الكل</SelectItem>
-                            <SelectItem value="1">1</SelectItem>
-                            <SelectItem value="2">2</SelectItem>
-                            <SelectItem value="3">3</SelectItem>
-                            <SelectItem value="4">4</SelectItem>
-                            <SelectItem value="5">5</SelectItem>
-                        </SelectContent>
-                    </Select>
-                </div>
-                <div class="w-32">
-                    <Label class="text-sm font-medium">جانب عملي</Label>
-                    <Select v-model="selectedPractical">
-                        <SelectTrigger class="mt-1">
-                            <SelectValue placeholder="الكل" />
-                        </SelectTrigger>
-                        <SelectContent>
-                            <SelectItem value="all">الكل</SelectItem>
-                            <SelectItem value="1">نعم</SelectItem>
-                            <SelectItem value="0">لا</SelectItem>
-                        </SelectContent>
-                    </Select>
-                </div>
-                <Button variant="outline" @click="resetFilters" class="gap-1">
-                    <X class="h-4 w-4" />
-                    إعادة ضبط
-                </Button>
-            </div>
-        </div>
-
-        <!-- Courses Table (Desktop) -->
-        <div
-            class="hidden md:block overflow-hidden rounded-2xl border border-white/20 bg-white/80 shadow-xl backdrop-blur-md">
-            <div class="overflow-x-auto">
-                <Table>
-                    <TableHeader>
-                        <TableRow class="border-b border-gray-200/50 bg-linear-to-r from-gray-50/80 to-transparent">
-                            <TableHead class="font-semibold">الرمز</TableHead>
-                            <TableHead class="font-semibold">اسم المقرر</TableHead>
-                            <TableHead class="font-semibold">
-                                <div class="flex items-center gap-1">
-                                    <Layers class="h-4 w-4" />
-                                    التخصصات والخطط
-                                </div>
-                            </TableHead>
-                            <TableHead class="text-center font-semibold">
-                                <div class="flex items-center justify-center gap-1">
-                                    <Award class="h-4 w-4" />
-                                    الوحدات
-                                </div>
-                            </TableHead>
-                            <TableHead class="text-center font-semibold">عملي</TableHead>
-                            <TableHead class="font-semibold">المتطلبات السابقة</TableHead>
-                            <TableHead class="text-center font-semibold">الإجراءات</TableHead>
-                        </TableRow>
-                    </TableHeader>
-                    <TableBody>
-                        <TableRow v-for="(course, idx) in courses.data" :key="course.id"
-                            class="group transition-all duration-300 hover:bg-orange-50/40"
-                            :style="{ animationDelay: `${idx * 30}ms` }">
-                            <TableCell class="font-mono font-bold text-blue-800">{{ course.code }}</TableCell>
-                            <TableCell class="font-semibold">{{ course.name }}</TableCell>
-                            <TableCell>
-                                <div class="flex flex-wrap gap-1">
-                                    <Badge v-for="spec in course.specializations" :key="spec.id" variant="secondary"
-                                        class="bg-blue-100 text-blue-800 gap-1">
-                                        <GraduationCap class="h-3 w-3" />
-                                        {{ spec.name }} (سمستر {{ spec.pivot?.semester_level }})
-                                    </Badge>
-                                    <span v-if="!course.specializations?.length" class="text-xs text-gray-400">—</span>
-                                </div>
-                            </TableCell>
-                            <TableCell class="text-center">
-                                <Badge :class="getUnitBadgeClass(course.units)">{{ course.units }}</Badge>
-                            </TableCell>
-                            <TableCell class="text-center">
-                                <span v-if="course.has_practical" class="text-green-600 inline-flex items-center gap-1">
-                                    <CheckCircle2 class="h-4 w-4" /> نعم
-                                </span>
-                                <span v-else class="text-gray-400 inline-flex items-center gap-1">
-                                    <XCircle class="h-4 w-4" /> لا
-                                </span>
-                            </TableCell>
-                            <TableCell>
-                                <div class="flex flex-wrap gap-1">
-                                    <Badge v-for="prereq in course.prerequisites" :key="prereq.id" variant="outline"
-                                        class="bg-amber-50 text-amber-800">
-                                        {{ prereq.code }} - {{ prereq.name }}
-                                    </Badge>
-                                    <span v-if="!course.prerequisites?.length" class="text-xs text-gray-400">لا
-                                        يوجد</span>
-                                </div>
-                            </TableCell>
-                            <TableCell class="text-center">
-                                <div class="flex justify-center gap-2">
-                                    <Link :href="`/academic/courses/${course.id}`"
-                                        class="text-blue-600 hover:text-blue-800">
-                                        <Eye class="h-4 w-4" />
-                                    </Link>
-                                    <Link :href="`/academic/courses/${course.id}/edit`"
-                                        class="text-amber-600 hover:text-amber-800">
-                                        <Pencil class="h-4 w-4" />
-                                    </Link>
-                                    <button @click="openDeleteModal(course)" class="text-red-600 hover:text-red-800">
-                                        <Trash2 class="h-4 w-4" />
-                                    </button>
-                                </div>
-                            </TableCell>
-                        </TableRow>
-                        <TableRow v-if="courses.data.length === 0">
-                            <TableCell colspan="7" class="py-16 text-center">
-                                <div class="flex flex-col items-center gap-2 text-gray-500">
-                                    <Sparkles class="h-12 w-12" />
-                                    <p>لا توجد مقررات تطابق معايير البحث</p>
-                                </div>
-                            </TableCell>
-                        </TableRow>
-                    </TableBody>
-                </Table>
-            </div>
-
-            <!-- Pagination -->
-            <div v-if="courses.last_page > 1" class="border-t px-4 py-3 flex justify-between items-center">
-                <div class="text-sm text-gray-500">عرض {{ courses.data.length }} من {{ courses.total }} مقرر</div>
-                <div class="flex gap-2">
-                    <Button variant="outline" size="sm" :disabled="courses.current_page === 1"
-                        @click="changePage(courses.links.find(l => l.label === '&laquo; Previous')?.url || null)">
-                        <ChevronRight class="h-4 w-4" /> السابق
-                    </Button>
-                    <span class="px-3 py-1 text-sm">صفحة {{ courses.current_page }} من {{ courses.last_page }}</span>
-                    <Button variant="outline" size="sm" :disabled="courses.current_page === courses.last_page"
-                        @click="changePage(courses.links.find(l => l.label === 'Next &raquo;')?.url || null)">
-                        التالي
-                        <ChevronLeft class="h-4 w-4" />
+                    <Button variant="outline" class="gap-2" @click="resetFilters">
+                        <X class="h-4 w-4" />
+                        مسح الفلاتر
                     </Button>
                 </div>
-            </div>
-        </div>
 
-        <!-- Mobile Card View -->
-        <div class="md:hidden space-y-3">
-            <div v-for="course in courses.data" :key="course.id"
-                class="rounded-2xl border border-white/20 bg-white/80 p-4 shadow-lg backdrop-blur-sm">
-                <div class="flex justify-between items-start">
+                <div class="grid gap-3 md:grid-cols-2 xl:grid-cols-4">
+                    <div class="md:col-span-2">
+                        <Label class="text-xs font-bold text-slate-600">بحث بالرمز أو الاسم</Label>
+                        <div class="relative mt-1">
+                            <Search class="absolute top-1/2 right-3 h-4 w-4 -translate-y-1/2 text-slate-400" />
+                            <Input v-model="search" class="pr-9" placeholder="مثال: CHEM101 أو الكيمياء العامة" />
+                        </div>
+                    </div>
+
                     <div>
-                        <p class="font-mono font-bold text-blue-800">{{ course.code }}</p>
-                        <p class="font-bold text-lg">{{ course.name }}</p>
+                        <Label class="text-xs font-bold text-slate-600">القسم</Label>
+                        <Select v-model="selectedDepartment">
+                            <SelectTrigger class="mt-1"><SelectValue /></SelectTrigger>
+                            <SelectContent>
+                                <SelectItem value="all">كل الأقسام</SelectItem>
+                                <SelectItem v-for="department in departments" :key="department.id" :value="String(department.id)">
+                                    {{ department.name }}
+                                </SelectItem>
+                            </SelectContent>
+                        </Select>
                     </div>
-                    <Badge :class="getUnitBadgeClass(course.units)">{{ course.units }} وحدات</Badge>
+
+                    <div>
+                        <Label class="text-xs font-bold text-slate-600">التخصص</Label>
+                        <Select v-model="selectedSpecialization">
+                            <SelectTrigger class="mt-1"><SelectValue /></SelectTrigger>
+                            <SelectContent>
+                                <SelectItem value="all">كل التخصصات</SelectItem>
+                                <SelectItem v-for="specialization in filteredSpecializations" :key="specialization.id" :value="String(specialization.id)">
+                                    {{ specialization.name }}
+                                </SelectItem>
+                            </SelectContent>
+                        </Select>
+                    </div>
+
+                    <div>
+                        <Label class="text-xs font-bold text-slate-600">المستوى الدراسي</Label>
+                        <Select v-model="selectedLevel">
+                            <SelectTrigger class="mt-1"><SelectValue /></SelectTrigger>
+                            <SelectContent>
+                                <SelectItem value="all">كل المستويات</SelectItem>
+                                <SelectItem v-for="level in semesterLevels" :key="level" :value="String(level)">
+                                    المستوى {{ level }}
+                                </SelectItem>
+                            </SelectContent>
+                        </Select>
+                    </div>
+
+                    <div>
+                        <Label class="text-xs font-bold text-slate-600">الوحدات</Label>
+                        <Select v-model="selectedUnits">
+                            <SelectTrigger class="mt-1"><SelectValue /></SelectTrigger>
+                            <SelectContent>
+                                <SelectItem value="all">كل الوحدات</SelectItem>
+                                <SelectItem v-for="units in unitOptions" :key="units" :value="String(units)">
+                                    {{ units }} وحدة
+                                </SelectItem>
+                            </SelectContent>
+                        </Select>
+                    </div>
+
+                    <div>
+                        <Label class="text-xs font-bold text-slate-600">نوع المقرر</Label>
+                        <Select v-model="selectedPractical">
+                            <SelectTrigger class="mt-1"><SelectValue /></SelectTrigger>
+                            <SelectContent>
+                                <SelectItem value="all">نظري وعملي</SelectItem>
+                                <SelectItem value="1">به جانب عملي</SelectItem>
+                                <SelectItem value="0">نظري فقط</SelectItem>
+                            </SelectContent>
+                        </Select>
+                    </div>
+
+                    <div>
+                        <Label class="text-xs font-bold text-slate-600">المتطلبات السابقة</Label>
+                        <Select v-model="selectedPrerequisites">
+                            <SelectTrigger class="mt-1"><SelectValue /></SelectTrigger>
+                            <SelectContent>
+                                <SelectItem value="any">الكل</SelectItem>
+                                <SelectItem value="with">له متطلبات</SelectItem>
+                                <SelectItem value="without">بدون متطلبات</SelectItem>
+                            </SelectContent>
+                        </Select>
+                    </div>
+
+                    <div>
+                        <Label class="text-xs font-bold text-slate-600">الارتباط بالخطة</Label>
+                        <Select v-model="selectedCurriculum">
+                            <SelectTrigger class="mt-1"><SelectValue /></SelectTrigger>
+                            <SelectContent>
+                                <SelectItem value="any">الكل</SelectItem>
+                                <SelectItem value="assigned">ضمن خطة دراسية</SelectItem>
+                                <SelectItem value="unassigned">غير مرتبط بخطة</SelectItem>
+                            </SelectContent>
+                        </Select>
+                    </div>
+
+                    <div>
+                        <Label class="text-xs font-bold text-slate-600">الفرز</Label>
+                        <Select :model-value="selectedSort" @update:model-value="setSelectedSort">
+                            <SelectTrigger class="mt-1"><SelectValue /></SelectTrigger>
+                            <SelectContent>
+                                <SelectItem value="code">الرمز</SelectItem>
+                                <SelectItem value="name">اسم المقرر</SelectItem>
+                                <SelectItem value="units">الوحدات</SelectItem>
+                                <SelectItem value="specializations">عدد الخطط</SelectItem>
+                                <SelectItem value="created_at">الأحدث إضافة</SelectItem>
+                            </SelectContent>
+                        </Select>
+                    </div>
+
+                    <div>
+                        <Label class="text-xs font-bold text-slate-600">اتجاه الفرز</Label>
+                        <Select v-model="selectedDirection">
+                            <SelectTrigger class="mt-1"><SelectValue /></SelectTrigger>
+                            <SelectContent>
+                                <SelectItem value="asc">تصاعدي</SelectItem>
+                                <SelectItem value="desc">تنازلي</SelectItem>
+                            </SelectContent>
+                        </Select>
+                    </div>
+
+                    <div>
+                        <Label class="text-xs font-bold text-slate-600">عدد الصفوف</Label>
+                        <Select v-model="selectedPerPage">
+                            <SelectTrigger class="mt-1"><SelectValue /></SelectTrigger>
+                            <SelectContent>
+                                <SelectItem value="10">10</SelectItem>
+                                <SelectItem value="25">25</SelectItem>
+                                <SelectItem value="50">50</SelectItem>
+                                <SelectItem value="100">100</SelectItem>
+                            </SelectContent>
+                        </Select>
+                    </div>
                 </div>
-                <div class="mt-2 text-sm text-gray-600 flex flex-wrap gap-3">
-                    <span class="flex items-center gap-1">
-                        <CheckCircle2 v-if="course.has_practical" class="h-3 w-3 text-green-600" />
-                        <XCircle v-else class="h-3 w-3 text-gray-400" /> عملي: {{ course.has_practical ? 'نعم' : 'لا' }}
-                    </span>
-                    <span><span class="font-semibold">متطلبات:</span> {{course.prerequisites?.length ?
-                        course.prerequisites.map(p => p.code).join(', ') : 'لا يوجد'}}</span>
-                </div>
-                <div class="mt-2 flex gap-2 justify-end">
-                    <Link :href="`/academic/courses/${course.id}`" class="p-2 text-blue-600">
-                        <Eye class="h-4 w-4" />
-                    </Link>
-                    <Link :href="`/academic/courses/${course.id}/edit`" class="p-2 text-amber-600">
-                        <Pencil class="h-4 w-4" />
-                    </Link>
-                    <button @click="openDeleteModal(course)" class="p-2 text-red-600">
-                        <Trash2 class="h-4 w-4" />
+
+                <div v-if="activeFilters.length" class="mt-4 flex flex-wrap gap-2 border-t border-slate-100 pt-3">
+                    <button
+                        v-for="filter in activeFilters"
+                        :key="filter.key"
+                        type="button"
+                        class="inline-flex items-center gap-1 rounded-full bg-blue-50 px-3 py-1 text-xs font-bold text-blue-800 hover:bg-blue-100"
+                        @click="filter.clear"
+                    >
+                        {{ filter.label }}
+                        <X class="h-3 w-3" />
                     </button>
                 </div>
-            </div>
-            <div v-if="courses.data.length === 0" class="py-12 text-center text-gray-500">
-                <Sparkles class="mx-auto h-12 w-12" />
-                <p>لا توجد مقررات</p>
-            </div>
-            <!-- Pagination mobile -->
-            <div v-if="courses.last_page > 1" class="flex justify-between items-center pt-2">
-                <Button variant="outline" size="sm" :disabled="courses.current_page === 1"
-                    @click="changePage(courses.links.find(l => l.label === '&laquo; Previous')?.url || null)">السابق</Button>
-                <span class="text-sm">صفحة {{ courses.current_page }} من {{ courses.last_page }}</span>
-                <Button variant="outline" size="sm" :disabled="courses.current_page === courses.last_page"
-                    @click="changePage(courses.links.find(l => l.label === 'Next &raquo;')?.url || null)">التالي</Button>
-            </div>
+            </section>
+
+            <section class="hidden overflow-hidden rounded-md border border-slate-200 bg-white shadow-sm md:block">
+                <div class="overflow-x-auto">
+                    <Table>
+                        <TableHeader>
+                            <TableRow class="bg-slate-50">
+                                <TableHead class="font-black">الرمز</TableHead>
+                                <TableHead class="font-black">اسم المقرر</TableHead>
+                                <TableHead class="font-black">
+                                    <span class="inline-flex items-center gap-1"><Layers class="h-4 w-4" /> الخطط</span>
+                                </TableHead>
+                                <TableHead class="text-center font-black">
+                                    <span class="inline-flex items-center gap-1"><Award class="h-4 w-4" /> الوحدات</span>
+                                </TableHead>
+                                <TableHead class="text-center font-black">النوع</TableHead>
+                                <TableHead class="font-black">المتطلبات</TableHead>
+                                <TableHead class="text-center font-black">الإجراءات</TableHead>
+                            </TableRow>
+                        </TableHeader>
+                        <TableBody>
+                            <TableRow v-for="course in courses.data" :key="course.id" class="hover:bg-orange-50/40">
+                                <TableCell class="font-mono font-black text-blue-800">{{ course.code }}</TableCell>
+                                <TableCell>
+                                    <div class="font-bold text-slate-950">{{ course.name }}</div>
+                                    <div class="mt-1 text-xs text-slate-500">
+                                        {{ course.specializations_count ?? course.specializations?.length ?? 0 }} خطة مرتبطة
+                                    </div>
+                                </TableCell>
+                                <TableCell>
+                                    <div class="flex max-w-md flex-wrap gap-1">
+                                        <Badge
+                                            v-for="spec in course.specializations"
+                                            :key="spec.id"
+                                            variant="secondary"
+                                            class="gap-1 bg-blue-50 text-blue-800"
+                                        >
+                                            <GraduationCap class="h-3 w-3" />
+                                            {{ spec.name }} / مستوى {{ spec.pivot?.semester_level }}
+                                        </Badge>
+                                        <span v-if="!course.specializations?.length" class="text-xs font-bold text-rose-500">غير مرتبط بخطة</span>
+                                    </div>
+                                </TableCell>
+                                <TableCell class="text-center">
+                                    <Badge :class="getUnitBadgeClass(course.units)">{{ course.units }}</Badge>
+                                </TableCell>
+                                <TableCell class="text-center">
+                                    <span v-if="course.has_practical" class="inline-flex items-center gap-1 text-sm font-bold text-emerald-700">
+                                        <CheckCircle2 class="h-4 w-4" /> عملي
+                                    </span>
+                                    <span v-else class="inline-flex items-center gap-1 text-sm font-bold text-slate-500">
+                                        <XCircle class="h-4 w-4" /> نظري
+                                    </span>
+                                </TableCell>
+                                <TableCell>
+                                    <div class="flex max-w-sm flex-wrap gap-1">
+                                        <Badge v-for="prereq in course.prerequisites" :key="prereq.id" variant="outline" class="bg-amber-50 text-amber-800">
+                                            {{ prereq.code }}
+                                        </Badge>
+                                        <span v-if="!course.prerequisites?.length" class="text-xs text-slate-400">لا يوجد</span>
+                                    </div>
+                                </TableCell>
+                                <TableCell>
+                                    <div class="flex justify-center gap-2">
+                                        <Link :href="`/academic/courses/${course.id}`" class="rounded-md p-2 text-blue-700 hover:bg-blue-50" title="عرض">
+                                            <Eye class="h-4 w-4" />
+                                        </Link>
+                                        <Link :href="`/academic/courses/${course.id}/edit`" class="rounded-md p-2 text-amber-700 hover:bg-amber-50" title="تعديل">
+                                            <Pencil class="h-4 w-4" />
+                                        </Link>
+                                        <button class="rounded-md p-2 text-red-700 hover:bg-red-50" title="حذف" @click="openDeleteModal(course)">
+                                            <Trash2 class="h-4 w-4" />
+                                        </button>
+                                    </div>
+                                </TableCell>
+                            </TableRow>
+
+                            <TableRow v-if="courses.data.length === 0">
+                                <TableCell colspan="7" class="py-14 text-center">
+                                    <SlidersHorizontal class="mx-auto h-10 w-10 text-slate-300" />
+                                    <p class="mt-3 font-bold text-slate-600">لا توجد مقررات مطابقة للفلاتر الحالية.</p>
+                                </TableCell>
+                            </TableRow>
+                        </TableBody>
+                    </Table>
+                </div>
+
+                <div v-if="courses.last_page > 1" class="flex items-center justify-between border-t border-slate-100 px-4 py-3">
+                    <p class="text-sm font-bold text-slate-500">
+                        عرض {{ courses.from ?? 0 }} - {{ courses.to ?? courses.data.length }} من {{ courses.total }}
+                    </p>
+                    <div class="flex items-center gap-2">
+                        <Button variant="outline" size="sm" :disabled="!previousUrl" @click="changePage(previousUrl)">
+                            <ChevronRight class="h-4 w-4" /> السابق
+                        </Button>
+                        <span class="px-2 text-sm font-bold text-slate-600">صفحة {{ courses.current_page }} من {{ courses.last_page }}</span>
+                        <Button variant="outline" size="sm" :disabled="!nextUrl" @click="changePage(nextUrl)">
+                            التالي <ChevronLeft class="h-4 w-4" />
+                        </Button>
+                    </div>
+                </div>
+            </section>
+
+            <section class="space-y-3 md:hidden">
+                <article v-for="course in courses.data" :key="course.id" class="rounded-md border border-slate-200 bg-white p-4 shadow-sm">
+                    <div class="flex items-start justify-between gap-3">
+                        <div>
+                            <p class="font-mono text-sm font-black text-blue-800">{{ course.code }}</p>
+                            <h2 class="mt-1 text-base font-black text-slate-950">{{ course.name }}</h2>
+                        </div>
+                        <Badge :class="getUnitBadgeClass(course.units)">{{ course.units }} وحدات</Badge>
+                    </div>
+
+                    <div class="mt-3 flex flex-wrap gap-2 text-xs font-bold text-slate-600">
+                        <span>{{ course.has_practical ? 'عملي' : 'نظري' }}</span>
+                        <span>{{ course.specializations?.length || 0 }} خطة</span>
+                        <span>{{ course.prerequisites?.length || 0 }} متطلب</span>
+                    </div>
+
+                    <div class="mt-3 flex justify-end gap-2">
+                        <Link :href="`/academic/courses/${course.id}`" class="rounded-md p-2 text-blue-700"><Eye class="h-4 w-4" /></Link>
+                        <Link :href="`/academic/courses/${course.id}/edit`" class="rounded-md p-2 text-amber-700"><Pencil class="h-4 w-4" /></Link>
+                        <button class="rounded-md p-2 text-red-700" @click="openDeleteModal(course)"><Trash2 class="h-4 w-4" /></button>
+                    </div>
+                </article>
+            </section>
         </div>
 
-        <!-- Floating Action Button -->
-        <Transition name="float-button">
-            <button v-if="isScrolled" @click="router.get('/academic/courses/create')"
-                class="fixed bottom-6 left-6 z-50 flex h-14 w-14 items-center justify-center rounded-full bg-orange-500 text-white shadow-2xl transition-all hover:bg-orange-600 hover:scale-110"
-                title="إضافة مقرر جديد">
-                <Plus class="h-6 w-6" />
-            </button>
-        </Transition>
-
-        <!-- Delete Modal -->
         <Dialog v-model:open="showDeleteModal">
             <DialogContent>
                 <DialogHeader>
-                    <DialogTitle class="text-red-600">تأكيد الحذف</DialogTitle>
+                    <DialogTitle class="text-red-700">تأكيد حذف المقرر</DialogTitle>
                     <DialogDescription>
-                        هل أنت متأكد من حذف المقرر "{{ deletingCourse?.name }}"؟ لا يمكن التراجع عن هذا الإجراء.
+                        سيتم حذف "{{ deletingCourse?.name }}" من النظام. لا يمكن التراجع عن هذا الإجراء.
                     </DialogDescription>
                 </DialogHeader>
                 <DialogFooter>
                     <Button variant="outline" @click="showDeleteModal = false">إلغاء</Button>
-                    <Button @click="confirmDelete" class="bg-red-600 hover:bg-red-700">حذف</Button>
+                    <Button class="bg-red-600 hover:bg-red-700" @click="confirmDelete">حذف</Button>
                 </DialogFooter>
             </DialogContent>
         </Dialog>
-    </div>
+    </main>
 </template>
-
-<style scoped>
-@keyframes fadeSlideUp {
-    from {
-        opacity: 0;
-        transform: translateY(10px);
-    }
-
-    to {
-        opacity: 1;
-        transform: translateY(0);
-    }
-}
-
-tbody tr {
-    animation: fadeSlideUp 0.3s ease-out forwards;
-    opacity: 0;
-}
-
-tbody tr:nth-child(1) {
-    animation-delay: 0ms;
-}
-
-tbody tr:nth-child(2) {
-    animation-delay: 30ms;
-}
-
-tbody tr:nth-child(3) {
-    animation-delay: 60ms;
-}
-
-.float-button-enter-active,
-.float-button-leave-active {
-    transition: all 0.2s ease;
-}
-
-.float-button-enter-from,
-.float-button-leave-to {
-    opacity: 0;
-    transform: scale(0.8);
-}
-</style>

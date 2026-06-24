@@ -1,9 +1,10 @@
 <?php
+
 require 'vendor/autoload.php';
 
 $class = '\\PhpOffice\\PhpSpreadsheet\\IOFactory';
 echo "Checking class: $class\n";
-echo "Class exists: " . (class_exists($class) ? 'YES' : 'NO') . "\n";
+echo 'Class exists: '.(class_exists($class) ? 'YES' : 'NO')."\n";
 
 if (class_exists($class)) {
     echo "IOFactory loaded successfully\n";

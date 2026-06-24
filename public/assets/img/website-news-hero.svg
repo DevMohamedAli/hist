@@ -1,0 +1,24 @@
+<svg width="1600" height="900" viewBox="0 0 1600 900" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <rect width="1600" height="900" fill="#082f49"/>
+  <path d="M0 0H1600V900H0V0Z" fill="url(#paint0_linear)"/>
+  <circle cx="1320" cy="156" r="260" fill="#f97316" fill-opacity=".22"/>
+  <circle cx="210" cy="760" r="330" fill="#38bdf8" fill-opacity=".14"/>
+  <path d="M1060 240H1390C1428.66 240 1460 271.34 1460 310V662C1460 700.66 1428.66 732 1390 732H1060C1021.34 732 990 700.66 990 662V310C990 271.34 1021.34 240 1060 240Z" fill="white" fill-opacity=".14"/>
+  <path d="M1110 312H1340" stroke="white" stroke-opacity=".72" stroke-width="22" stroke-linecap="round"/>
+  <path d="M1110 386H1400" stroke="white" stroke-opacity=".46" stroke-width="16" stroke-linecap="round"/>
+  <path d="M1110 442H1370" stroke="white" stroke-opacity=".46" stroke-width="16" stroke-linecap="round"/>
+  <path d="M1110 498H1400" stroke="white" stroke-opacity=".46" stroke-width="16" stroke-linecap="round"/>
+  <path d="M1110 586H1260" stroke="#fb923c" stroke-width="24" stroke-linecap="round"/>
+  <path d="M226 284C332 182 505 178 620 274C731 367 760 532 687 658C628 759 512 817 392 798C259 777 157 672 145 541C136 444 166 342 226 284Z" fill="white" fill-opacity=".1"/>
+  <path d="M296 535L428 604L596 424" stroke="white" stroke-opacity=".75" stroke-width="38" stroke-linecap="round" stroke-linejoin="round"/>
+  <path d="M99 135H742" stroke="white" stroke-opacity=".12" stroke-width="2"/>
+  <path d="M67 192H710" stroke="white" stroke-opacity=".08" stroke-width="2"/>
+  <path d="M842 786H1509" stroke="white" stroke-opacity=".1" stroke-width="2"/>
+  <defs>
+    <linearGradient id="paint0_linear" x1="1403" y1="93" x2="219" y2="870" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#1d4ed8"/>
+      <stop offset=".47" stop-color="#0f172a"/>
+      <stop offset="1" stop-color="#0369a1"/>
+    </linearGradient>
+  </defs>
+</svg>

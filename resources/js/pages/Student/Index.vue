@@ -1,21 +1,21 @@
 <script setup lang="ts">
 import { Head, Link, router } from '@inertiajs/vue3';
 import {
-    Plus,
-    Edit2,
-    Trash2,
-    Eye,
-    Search,
-    RotateCcw,
-    Users,
     BookOpen,
-    ChevronRight,
     ChevronLeft,
+    ChevronRight,
+    Edit2,
+    Eye,
+    Plus,
+    RotateCcw,
+    Search,
+    Trash2,
+    Users,
 } from 'lucide-vue-next';
 import { ref } from 'vue';
+import RegistrationClosedDialog from '@/components/RegistrationClosedDialog.vue';
 import { formatDisplayDate } from '@/lib/date';
 
-// ── Types ──────────────────────────────────────────────
 interface Specialization {
     id: number;
     name: string;
@@ -60,9 +60,20 @@ interface PaginatedCollection<T> {
     total: number;
 }
 
+interface RegistrationAvailability {
+    is_open: boolean;
+    message: string;
+    semester?: {
+        code: string;
+        registration_start: string | null;
+        registration_end: string | null;
+    } | null;
+}
+
 const props = defineProps<{
     students: PaginatedCollection<Student>;
     specializations: Specialization[];
+    registrationAvailability?: RegistrationAvailability;
     filters: {
         search: string | null;
         status: string | null;
@@ -73,6 +84,7 @@ const props = defineProps<{
 const search = ref(props.filters.search || '');
 const status = ref(props.filters.status || '');
 const specialization = ref(props.filters.specialization || '');
+const registrationDialogOpen = ref(false);
 
 let searchTimeout: ReturnType<typeof setTimeout>;
 const handleSearch = (resetPage = true) => {
@@ -129,7 +141,6 @@ const statusConfig: Record<string, { label: string; classes: string }> = {
 
     <main class="min-h-screen bg-gray-50 p-4 sm:p-6 lg:p-8" dir="rtl">
         <div class="mx-auto max-w-7xl space-y-6">
-            <!-- Header -->
             <section
                 class="rounded-lg border-t-4 border-blue-800 bg-white p-6 shadow-md"
             >
@@ -145,9 +156,9 @@ const statusConfig: Record<string, { label: string; classes: string }> = {
                         </h1>
                         <p class="mt-2 text-sm text-gray-600">
                             إجمالي الطلاب المسجلين:
-                            <span class="font-bold">{{
-                                students.total.toLocaleString()
-                            }}</span>
+                            <span class="font-bold">
+                                {{ students.total.toLocaleString() }}
+                            </span>
                             طالب
                         </p>
                     </div>
@@ -167,26 +178,34 @@ const statusConfig: Record<string, { label: string; classes: string }> = {
                 </div>
             </section>
 
-            <!-- Create Button -->
             <div class="flex justify-end">
                 <Link
+                    v-if="props.registrationAvailability?.is_open"
                     href="/students/create"
                     class="inline-flex items-center gap-2 rounded-lg bg-orange-500 px-6 py-2.5 text-sm font-bold text-white shadow-md transition hover:bg-orange-600"
                 >
                     <Plus class="h-5 w-5" />
                     تسجيل طالب جديد
                 </Link>
+                <button
+                    v-else
+                    type="button"
+                    class="inline-flex items-center gap-2 rounded-lg border border-amber-200 bg-amber-50 px-6 py-2.5 text-sm font-bold text-amber-900 shadow-sm transition hover:bg-amber-100"
+                    @click="registrationDialogOpen = true"
+                >
+                    <Plus class="h-5 w-5" />
+                    تسجيل طالب جديد
+                </button>
             </div>
 
-            <!-- Filters -->
             <section class="rounded-lg bg-white p-6 shadow-md">
                 <div
                     class="grid grid-cols-1 gap-4 md:grid-cols-3 lg:grid-cols-4"
                 >
                     <div>
-                        <label class="block text-sm font-semibold text-gray-700"
-                            >البحث</label
-                        >
+                        <label class="block text-sm font-semibold text-gray-700">
+                            البحث
+                        </label>
                         <div class="relative mt-1">
                             <Search
                                 class="absolute top-2.5 right-3 h-4 w-4 text-gray-400"
@@ -201,9 +220,9 @@ const statusConfig: Record<string, { label: string; classes: string }> = {
                         </div>
                     </div>
                     <div>
-                        <label class="block text-sm font-semibold text-gray-700"
-                            >الحالة</label
-                        >
+                        <label class="block text-sm font-semibold text-gray-700">
+                            الحالة
+                        </label>
                         <select
                             v-model="status"
                             class="mt-1 block w-full rounded-lg border border-gray-300 bg-white py-2 pr-10 pl-3 text-start shadow-sm focus:border-blue-800 focus:ring-2 focus:ring-blue-800/20"
@@ -217,9 +236,9 @@ const statusConfig: Record<string, { label: string; classes: string }> = {
                         </select>
                     </div>
                     <div>
-                        <label class="block text-sm font-semibold text-gray-700"
-                            >التخصص</label
-                        >
+                        <label class="block text-sm font-semibold text-gray-700">
+                            التخصص
+                        </label>
                         <select
                             v-model="specialization"
                             class="mt-1 block w-full rounded-lg border border-gray-300 bg-white py-2 pr-10 pl-3 text-start shadow-sm focus:border-blue-800 focus:ring-2 focus:ring-blue-800/20"
@@ -232,9 +251,9 @@ const statusConfig: Record<string, { label: string; classes: string }> = {
                                 :value="String(spec.id)"
                             >
                                 {{ spec.name }}
-                                <template v-if="spec.department?.name"
-                                    >({{ spec.department.name }})</template
-                                >
+                                <template v-if="spec.department?.name">
+                                    ({{ spec.department.name }})
+                                </template>
                             </option>
                         </select>
                     </div>
@@ -257,7 +276,6 @@ const statusConfig: Record<string, { label: string; classes: string }> = {
                 </div>
             </section>
 
-            <!-- Students Table -->
             <section class="overflow-hidden rounded-lg bg-white shadow-md">
                 <div class="overflow-x-auto">
                     <table class="w-full min-w-200 text-start text-sm">
@@ -292,14 +310,10 @@ const statusConfig: Record<string, { label: string; classes: string }> = {
                                 :key="student.id"
                                 class="transition hover:bg-orange-50/60"
                             >
-                                <td
-                                    class="px-6 py-4 font-mono font-bold text-blue-800"
-                                >
+                                <td class="px-6 py-4 font-mono font-bold text-blue-800">
                                     {{ student.registration_number }}
                                 </td>
-                                <td
-                                    class="px-6 py-4 font-semibold text-gray-900"
-                                >
+                                <td class="px-6 py-4 font-semibold text-gray-900">
                                     {{ student.full_name }}
                                 </td>
                                 <td class="px-6 py-4">
@@ -311,33 +325,18 @@ const statusConfig: Record<string, { label: string; classes: string }> = {
                                                 : 'bg-pink-50 text-pink-700 ring-pink-600/20'
                                         "
                                     >
-                                        {{
-                                            student.gender === 'Male'
-                                                ? 'ذكر'
-                                                : 'أنثى'
-                                        }}
+                                        {{ student.gender === 'Male' ? 'ذكر' : 'أنثى' }}
                                     </span>
                                 </td>
                                 <td class="px-6 py-4 text-gray-700">
                                     <div class="flex items-center gap-1.5">
-                                        <BookOpen
-                                            class="h-4 w-4 text-gray-400"
-                                        />
-                                        {{
-                                            student.current_specialization
-                                                ?.name ?? '—'
-                                        }}
+                                        <BookOpen class="h-4 w-4 text-gray-400" />
+                                        {{ student.current_specialization?.name ?? '—' }}
                                         <span
-                                            v-if="
-                                                student.current_specialization
-                                                    ?.department
-                                            "
+                                            v-if="student.current_specialization?.department"
                                             class="text-xs text-gray-500"
                                         >
-                                            ({{
-                                                student.current_specialization
-                                                    .department.name
-                                            }})
+                                            ({{ student.current_specialization.department.name }})
                                         </span>
                                     </div>
                                 </td>
@@ -345,24 +344,18 @@ const statusConfig: Record<string, { label: string; classes: string }> = {
                                     <span
                                         class="inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-semibold ring-1 ring-inset"
                                         :class="
-                                            statusConfig[student.status]
-                                                ?.classes ||
+                                            statusConfig[student.status]?.classes ||
                                             'bg-gray-50 text-gray-700 ring-gray-600/20'
                                         "
                                     >
-                                        {{
-                                            statusConfig[student.status]
-                                                ?.label || student.status
-                                        }}
+                                        {{ statusConfig[student.status]?.label || student.status }}
                                     </span>
                                 </td>
                                 <td class="px-6 py-4 text-gray-700">
                                     {{ formatDisplayDate(student.admission_date) }}
                                 </td>
                                 <td class="px-6 py-4 text-center">
-                                    <div
-                                        class="flex items-center justify-center gap-2"
-                                    >
+                                    <div class="flex items-center justify-center gap-2">
                                         <Link
                                             :href="`/students/${student.id}`"
                                             class="inline-flex items-center gap-1 rounded bg-gray-50 px-2 py-1 text-xs font-medium text-gray-700 transition hover:bg-gray-200"
@@ -388,16 +381,13 @@ const statusConfig: Record<string, { label: string; classes: string }> = {
                                 </td>
                             </tr>
 
-                            <!-- Empty state -->
                             <tr v-if="students.data.length === 0">
                                 <td
                                     colspan="7"
                                     class="px-6 py-10 text-center text-gray-500"
                                 >
                                     <div class="flex flex-col items-center">
-                                        <Users
-                                            class="mb-3 h-12 w-12 text-gray-300"
-                                        />
+                                        <Users class="mb-3 h-12 w-12 text-gray-300" />
                                         <p class="font-semibold">
                                             لا يوجد طلاب مطابقون للبحث
                                         </p>
@@ -414,7 +404,6 @@ const statusConfig: Record<string, { label: string; classes: string }> = {
                     </table>
                 </div>
 
-                <!-- Pagination -->
                 <div
                     v-if="students.total > students.per_page"
                     class="flex items-center justify-center gap-1 border-t border-gray-200 px-6 py-4"
@@ -461,5 +450,10 @@ const statusConfig: Record<string, { label: string; classes: string }> = {
                 </div>
             </section>
         </div>
+
+        <RegistrationClosedDialog
+            v-model:open="registrationDialogOpen"
+            :registration="registrationAvailability"
+        />
     </main>
 </template>

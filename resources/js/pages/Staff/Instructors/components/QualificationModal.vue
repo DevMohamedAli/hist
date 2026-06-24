@@ -40,6 +40,7 @@ const submit = () => {
 
     if (props.qualification?.id) {
         form.patch(`/qualifications/${props.qualification.id}`, options);
+
         return;
     }
 
@@ -62,23 +63,45 @@ const submit = () => {
             <form class="space-y-4 py-4" @submit.prevent="submit">
                 <div class="grid gap-2">
                     <Label for="degree_name">اسم المؤهل</Label>
-                    <Input id="degree_name" v-model="form.degree_name" placeholder="مثال: ماجستير" />
-                    <span v-if="form.errors.degree_name" class="text-xs text-red-500">
+                    <Input
+                        id="degree_name"
+                        v-model="form.degree_name"
+                        placeholder="مثال: ماجستير"
+                    />
+                    <span
+                        v-if="form.errors.degree_name"
+                        class="text-xs text-red-500"
+                    >
                         {{ form.errors.degree_name }}
                     </span>
                 </div>
 
                 <div class="grid gap-2">
                     <Label for="institution">المؤسسة المانحة</Label>
-                    <Input id="institution" v-model="form.institution" placeholder="مثال: جامعة طرابلس" />
-                    <span v-if="form.errors.institution" class="text-xs text-red-500">
+                    <Input
+                        id="institution"
+                        v-model="form.institution"
+                        placeholder="مثال: جامعة طرابلس"
+                    />
+                    <span
+                        v-if="form.errors.institution"
+                        class="text-xs text-red-500"
+                    >
                         {{ form.errors.institution }}
                     </span>
                 </div>
 
                 <DialogFooter class="gap-2 pt-4">
-                    <Button variant="outline" type="button" @click="emit('close')">إلغاء</Button>
-                    <Button type="submit" class="bg-orange-500 text-white hover:bg-orange-600">
+                    <Button
+                        variant="outline"
+                        type="button"
+                        @click="emit('close')"
+                        >إلغاء</Button
+                    >
+                    <Button
+                        type="submit"
+                        class="bg-orange-500 text-white hover:bg-orange-600"
+                    >
                         {{ qualification ? 'تحديث' : 'حفظ' }}
                     </Button>
                 </DialogFooter>

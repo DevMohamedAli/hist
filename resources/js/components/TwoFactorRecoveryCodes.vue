@@ -45,15 +45,19 @@ onMounted(async () => {
                 <LockKeyhole class="size-4 text-blue-700" />
                 رموز الاسترداد
             </CardTitle>
-            <CardDescription class="text-right font-bold leading-6">
-                استخدم هذه الرموز للدخول إذا فقدت تطبيق المصادقة. احتفظ بها في مكان آمن.
+            <CardDescription class="text-right leading-6 font-bold">
+                استخدم هذه الرموز للدخول إذا فقدت تطبيق المصادقة. احتفظ بها في
+                مكان آمن.
             </CardDescription>
         </CardHeader>
         <CardContent>
             <div
                 class="flex flex-col gap-3 select-none sm:flex-row sm:items-center sm:justify-between"
             >
-                <Button @click="toggleRecoveryCodesVisibility" class="w-fit rounded-xl font-black">
+                <Button
+                    @click="toggleRecoveryCodesVisibility"
+                    class="w-fit rounded-xl font-black"
+                >
                     <component
                         :is="isRecoveryCodesVisible ? EyeOff : Eye"
                         class="size-4"
@@ -111,8 +115,11 @@ onMounted(async () => {
                             {{ code }}
                         </div>
                     </div>
-                    <p class="text-xs font-bold leading-6 text-slate-500 select-none">
-                        كل رمز يستخدم مرة واحدة فقط. إذا احتجت رموزاً جديدة استخدم زر توليد رموز جديدة.
+                    <p
+                        class="text-xs leading-6 font-bold text-slate-500 select-none"
+                    >
+                        كل رمز يستخدم مرة واحدة فقط. إذا احتجت رموزاً جديدة
+                        استخدم زر توليد رموز جديدة.
                     </p>
                 </div>
             </div>

@@ -101,6 +101,10 @@ const props = withDefaults(
     },
 );
 
+const canManageAcademicActions = () => props.student.status === 'Active';
+const canTransfer = () => canManageAcademicActions() && props.transferEligibility.can_transfer;
+const canEnroll = () => canManageAcademicActions() && props.enrollmentAvailability.is_open;
+
 // ---------- Modals state ----------
 const showSuspendModal = ref(false);
 const showTransferModal = ref(false);
@@ -232,42 +236,50 @@ const gradeToColor = (evaluation: string | null) => {
                 </div>
 
                 <div class="flex flex-wrap items-center gap-3">
-                    <button
-                        type="button"
-                        @click="showSuspendModal = true"
-                        class="inline-flex items-center gap-2 border-b-4 border-slate-900 bg-slate-700 px-5 py-2.5 text-sm font-bold text-white transition-all hover:bg-slate-800 active:translate-y-1 active:border-b-0"
-                    >
-                        <PauseCircle class="h-4 w-4" />
-                        إيقاف القيد
-                    </button>
-                    <button
-                        v-if="transferEligibility.can_transfer"
-                        type="button"
-                        @click="showTransferModal = true"
-                        class="inline-flex items-center gap-2 border-b-4 border-slate-900 bg-slate-700 px-5 py-2.5 text-sm font-bold text-white transition-all hover:bg-slate-800 active:translate-y-1 active:border-b-0"
-                    >
-                        <MoveLeft class="h-4 w-4" />
-                        انتقال التخصص
-                    </button>
+                    <template v-if="canManageAcademicActions()">
+                        <button
+                            type="button"
+                            @click="showSuspendModal = true"
+                            class="inline-flex items-center gap-2 border-b-4 border-slate-900 bg-slate-700 px-5 py-2.5 text-sm font-bold text-white transition-all hover:bg-slate-800 active:translate-y-1 active:border-b-0"
+                        >
+                            <PauseCircle class="h-4 w-4" />
+                            إيقاف القيد
+                        </button>
+                        <button
+                            v-if="canTransfer()"
+                            type="button"
+                            @click="showTransferModal = true"
+                            class="inline-flex items-center gap-2 border-b-4 border-slate-900 bg-slate-700 px-5 py-2.5 text-sm font-bold text-white transition-all hover:bg-slate-800 active:translate-y-1 active:border-b-0"
+                        >
+                            <MoveLeft class="h-4 w-4" />
+                            انتقال التخصص
+                        </button>
+                        <div
+                            v-else
+                            class="max-w-xs border border-slate-300 bg-slate-100 px-4 py-2 text-sm font-bold text-slate-700"
+                        >
+                            {{ transferEligibility.message }}
+                        </div>
+                        <Link
+                            v-if="canEnroll()"
+                            :href="`/students/${student.id}/enroll`"
+                            class="inline-flex items-center gap-2 border-b-4 border-orange-800 bg-orange-600 px-6 py-2.5 text-sm font-bold text-white transition-all hover:bg-orange-700 active:translate-y-1 active:border-b-0"
+                        >
+                            <BookOpen class="h-4 w-4" />
+                            تسجيل وتنزيل مقررات
+                        </Link>
+                        <div
+                            v-else
+                            class="max-w-xs border border-amber-300 bg-amber-50 px-4 py-2 text-sm font-bold text-amber-900"
+                        >
+                            {{ enrollmentAvailability.message }}
+                        </div>
+                    </template>
                     <div
                         v-else
-                        class="max-w-xs border border-slate-300 bg-slate-100 px-4 py-2 text-sm font-bold text-slate-700"
+                        class="border border-blue-200 bg-blue-50 px-4 py-2 text-sm font-bold text-blue-900"
                     >
-                        {{ transferEligibility.message }}
-                    </div>
-                    <Link
-                        v-if="enrollmentAvailability.is_open"
-                        :href="`/students/${student.id}/enroll`"
-                        class="inline-flex items-center gap-2 border-b-4 border-orange-800 bg-orange-600 px-6 py-2.5 text-sm font-bold text-white transition-all hover:bg-orange-700 active:translate-y-1 active:border-b-0"
-                    >
-                        <BookOpen class="h-4 w-4" />
-                        تسجيل وتنزيل مقررات
-                    </Link>
-                    <div
-                        v-else
-                        class="max-w-xs border border-amber-300 bg-amber-50 px-4 py-2 text-sm font-bold text-amber-900"
-                    >
-                        {{ enrollmentAvailability.message }}
+                        الطالب متخرج، لذلك لا تتاح إجراءات إيقاف القيد أو انتقال التخصص أو تسجيل المقررات.
                     </div>
                 </div>
             </section>

@@ -74,7 +74,9 @@ const handleCancel = () => {
         dir="rtl"
     >
         <div class="grid gap-2">
-            <Label for="passkey-name" class="font-black text-slate-800">اسم مفتاح المرور</Label>
+            <Label for="passkey-name" class="font-black text-slate-800"
+                >اسم مفتاح المرور</Label
+            >
             <Input
                 id="passkey-name"
                 v-model="name"
@@ -91,10 +93,19 @@ const handleCancel = () => {
         <InputError v-if="error" :message="error" />
 
         <div class="flex gap-2">
-            <Button type="submit" :disabled="isLoading || !name.trim()" class="rounded-xl font-black">
+            <Button
+                type="submit"
+                :disabled="isLoading || !name.trim()"
+                class="rounded-xl font-black"
+            >
                 {{ isLoading ? 'جار التسجيل...' : 'تسجيل المفتاح' }}
             </Button>
-            <Button type="button" variant="ghost" class="rounded-xl font-black" @click="handleCancel">
+            <Button
+                type="button"
+                variant="ghost"
+                class="rounded-xl font-black"
+                @click="handleCancel"
+            >
                 إلغاء
             </Button>
         </div>

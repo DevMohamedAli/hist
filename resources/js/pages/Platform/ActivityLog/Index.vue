@@ -97,7 +97,7 @@ const refresh = () => router.reload({ only: ['activities', 'filters'] });
 
     <Head title="سجل النشاطات" />
 
-    <div class="min-h-screen bg-linear-to-br from-slate-50 to-blue-50/30 dark:from-gray-900 dark:to-gray-800 p-4 md:p-6"
+    <div class="activity-log-page min-h-screen bg-linear-to-br from-slate-50 to-blue-50/30 dark:from-gray-900 dark:to-gray-800 p-4 md:p-6"
         dir="rtl">
         <!-- Animated gradient header -->
         <div
@@ -197,29 +197,3 @@ const refresh = () => router.reload({ only: ['activities', 'filters'] });
         <AnalyticsModal v-model:open="showAnalyticsModal" />
     </div>
 </template>
-
-<style scoped>
-/* Slide transition for filter panel */
-.slide-fade-enter-active,
-.slide-fade-leave-active {
-    transition: all 0.3s ease;
-}
-
-.slide-fade-enter-from,
-.slide-fade-leave-to {
-    opacity: 0;
-    transform: translateY(-10px);
-}
-
-/* Floating button animation */
-.float-button-enter-active,
-.float-button-leave-active {
-    transition: all 0.2s ease;
-}
-
-.float-button-enter-from,
-.float-button-leave-to {
-    opacity: 0;
-    transform: scale(0.8);
-}
-</style>

@@ -38,14 +38,17 @@ interface QualificationForm {
     institution: string;
 }
 
-const props = withDefaults(defineProps<{
-    open?: boolean;
-    departments: Department[];
-    qualifications: Qualification[];
-}>(), {
-    open: false,
-    qualifications: () => [],
-});
+const props = withDefaults(
+    defineProps<{
+        open?: boolean;
+        departments: Department[];
+        qualifications: Qualification[];
+    }>(),
+    {
+        open: false,
+        qualifications: () => [],
+    },
+);
 
 const emit = defineEmits<{
     close: [];
@@ -69,7 +72,15 @@ const form = useForm({
     qualifications: [] as QualificationForm[],
 });
 
-const rankOptions = ['', 'معيد', 'محاضر مساعد', 'محاضر', 'أستاذ مساعد', 'أستاذ مشارك', 'أستاذ'];
+const rankOptions = [
+    '',
+    'معيد',
+    'محاضر مساعد',
+    'محاضر',
+    'أستاذ مساعد',
+    'أستاذ مشارك',
+    'أستاذ',
+];
 
 const closeModal = () => {
     form.reset();
@@ -92,19 +103,25 @@ const addQualification = () => {
     form.qualifications.push(emptyQualification());
 };
 
-watch(() => props.open, (isOpen) => {
-    if (isOpen && form.qualifications.length === 0) {
-        addQualification();
-    }
-});
+watch(
+    () => props.open,
+    (isOpen) => {
+        if (isOpen && form.qualifications.length === 0) {
+            addQualification();
+        }
+    },
+);
 
 const selectQualification = (index: number, value: string) => {
     if (value === '__new__') {
         form.qualifications[index] = emptyQualification();
+
         return;
     }
 
-    const selected = props.qualifications.find((qualification) => qualification.id === Number(value));
+    const selected = props.qualifications.find(
+        (qualification) => qualification.id === Number(value),
+    );
 
     if (!selected) {
         return;
@@ -122,7 +139,9 @@ const removeQualification = (index: number) => {
 };
 
 const qualificationError = (index: number, field: keyof QualificationForm) => {
-    return form.errors[`qualifications.${index}.${field}` as keyof typeof form.errors];
+    return form.errors[
+        `qualifications.${index}.${field}` as keyof typeof form.errors
+    ];
 };
 </script>
 
@@ -132,55 +151,84 @@ const qualificationError = (index: number, field: keyof QualificationForm) => {
             class="flex max-h-[90vh] flex-col overflow-hidden rounded-2xl border-none p-0 shadow-2xl sm:max-w-3xl"
             dir="rtl"
         >
-            <div class="shrink-0 bg-linear-to-l from-blue-900 via-blue-800 to-orange-600 p-6 text-white">
+            <div
+                class="shrink-0 bg-linear-to-l from-blue-900 via-blue-800 to-orange-600 p-6 text-white"
+            >
                 <DialogHeader class="space-y-1 text-right">
-                    <DialogTitle class="flex items-center gap-2 text-2xl font-extrabold text-white">
+                    <DialogTitle
+                        class="flex items-center gap-2 text-2xl font-extrabold text-white"
+                    >
                         <UserPlus class="h-6 w-6 text-orange-300" />
                         إضافة عضو هيئة تدريس
                     </DialogTitle>
                     <DialogDescription class="text-sm text-blue-100">
-                        أدخل بيانات عضو هيئة التدريس واختر مؤهلاته من الجدول المعتمد أو أضف مؤهلاً جديداً.
+                        أدخل بيانات عضو هيئة التدريس واختر مؤهلاته من الجدول
+                        المعتمد أو أضف مؤهلاً جديداً.
                     </DialogDescription>
                 </DialogHeader>
             </div>
 
-            <form class="flex-1 space-y-6 overflow-y-auto bg-white p-6" @submit.prevent="submit">
+            <form
+                class="flex-1 space-y-6 overflow-y-auto bg-white p-6"
+                @submit.prevent="submit"
+            >
                 <div class="grid gap-4 md:grid-cols-2">
                     <div class="space-y-2">
-                        <Label class="font-bold text-gray-700">الاسم الكامل *</Label>
+                        <Label class="font-bold text-gray-700"
+                            >الاسم الكامل *</Label
+                        >
                         <input
                             v-model="form.name"
                             required
                             class="w-full rounded-lg border border-gray-200 bg-gray-50 px-3 py-2 outline-hidden transition focus:border-blue-800 focus:ring-2 focus:ring-orange-500/20"
                         />
-                        <p v-if="form.errors.name" class="text-xs font-semibold text-red-500">{{ form.errors.name }}</p>
+                        <p
+                            v-if="form.errors.name"
+                            class="text-xs font-semibold text-red-500"
+                        >
+                            {{ form.errors.name }}
+                        </p>
                     </div>
 
                     <div class="space-y-2">
-                        <Label class="font-bold text-gray-700">الرقم الوطني *</Label>
+                        <Label class="font-bold text-gray-700"
+                            >الرقم الوطني *</Label
+                        >
                         <input
                             v-model="form.national_id"
                             required
                             maxlength="12"
                             class="w-full rounded-lg border border-gray-200 bg-gray-50 px-3 py-2 outline-hidden transition focus:border-blue-800 focus:ring-2 focus:ring-orange-500/20"
                         />
-                        <p v-if="form.errors.national_id" class="text-xs font-semibold text-red-500">
+                        <p
+                            v-if="form.errors.national_id"
+                            class="text-xs font-semibold text-red-500"
+                        >
                             {{ form.errors.national_id }}
                         </p>
                     </div>
 
                     <div class="space-y-2">
-                        <Label class="font-bold text-gray-700">البريد الإلكتروني</Label>
+                        <Label class="font-bold text-gray-700"
+                            >البريد الإلكتروني</Label
+                        >
                         <input
                             v-model="form.email"
                             type="email"
                             class="w-full rounded-lg border border-gray-200 bg-gray-50 px-3 py-2 outline-hidden transition focus:border-blue-800 focus:ring-2 focus:ring-orange-500/20"
                         />
-                        <p v-if="form.errors.email" class="text-xs font-semibold text-red-500">{{ form.errors.email }}</p>
+                        <p
+                            v-if="form.errors.email"
+                            class="text-xs font-semibold text-red-500"
+                        >
+                            {{ form.errors.email }}
+                        </p>
                     </div>
 
                     <div class="space-y-2">
-                        <Label class="font-bold text-gray-700">رقم الهاتف</Label>
+                        <Label class="font-bold text-gray-700"
+                            >رقم الهاتف</Label
+                        >
                         <input
                             v-model="form.phone"
                             class="w-full rounded-lg border border-gray-200 bg-gray-50 px-3 py-2 outline-hidden transition focus:border-blue-800 focus:ring-2 focus:ring-orange-500/20"
@@ -188,7 +236,9 @@ const qualificationError = (index: number, field: keyof QualificationForm) => {
                     </div>
 
                     <div class="space-y-2">
-                        <Label class="flex items-center gap-2 font-bold text-gray-700">
+                        <Label
+                            class="flex items-center gap-2 font-bold text-gray-700"
+                        >
                             <GraduationCap class="h-4 w-4 text-blue-600" />
                             الدرجة العلمية *
                         </Label>
@@ -197,15 +247,23 @@ const qualificationError = (index: number, field: keyof QualificationForm) => {
                             required
                             class="w-full rounded-lg border border-gray-200 bg-gray-50 px-3 py-2 outline-hidden transition focus:border-blue-800 focus:ring-2 focus:ring-orange-500/20"
                         >
-                            <option value="" disabled>اختر الدرجة العلمية</option>
-                            <option v-for="rank in rankOptions.filter(Boolean)" :key="rank" :value="rank">
+                            <option value="" disabled>
+                                اختر الدرجة العلمية
+                            </option>
+                            <option
+                                v-for="rank in rankOptions.filter(Boolean)"
+                                :key="rank"
+                                :value="rank"
+                            >
                                 {{ rank }}
                             </option>
                         </select>
                     </div>
 
                     <div class="space-y-2">
-                        <Label class="flex items-center gap-2 font-bold text-gray-700">
+                        <Label
+                            class="flex items-center gap-2 font-bold text-gray-700"
+                        >
                             <Building2 class="h-4 w-4 text-blue-600" />
                             القسم العلمي *
                         </Label>
@@ -215,14 +273,20 @@ const qualificationError = (index: number, field: keyof QualificationForm) => {
                             class="w-full rounded-lg border border-gray-200 bg-gray-50 px-3 py-2 outline-hidden transition focus:border-blue-800 focus:ring-2 focus:ring-orange-500/20"
                         >
                             <option value="" disabled>اختر القسم</option>
-                            <option v-for="department in departments" :key="department.id" :value="department.id">
+                            <option
+                                v-for="department in departments"
+                                :key="department.id"
+                                :value="department.id"
+                            >
                                 {{ department.name }}
                             </option>
                         </select>
                     </div>
 
                     <div class="space-y-2">
-                        <Label class="flex items-center gap-2 font-bold text-gray-700">
+                        <Label
+                            class="flex items-center gap-2 font-bold text-gray-700"
+                        >
                             <ShieldCheck class="h-4 w-4 text-blue-600" />
                             الحالة الوظيفية
                         </Label>
@@ -235,18 +299,26 @@ const qualificationError = (index: number, field: keyof QualificationForm) => {
                             <option value="Suspended">موقوف</option>
                         </select>
                     </div>
-
                 </div>
 
-                <section class="space-y-4 rounded-xl border border-blue-100 bg-blue-50/40 p-4">
+                <section
+                    class="space-y-4 rounded-xl border border-blue-100 bg-blue-50/40 p-4"
+                >
                     <div class="flex items-center justify-between gap-3">
                         <div>
-                            <h3 class="font-bold text-blue-900">المؤهلات العلمية</h3>
+                            <h3 class="font-bold text-blue-900">
+                                المؤهلات العلمية
+                            </h3>
                             <p class="text-xs text-gray-500">
-                                اختر مؤهلاً موجوداً، أو اختر "إنشاء مؤهل جديد" لكتابته من نفس النافذة.
+                                اختر مؤهلاً موجوداً، أو اختر "إنشاء مؤهل جديد"
+                                لكتابته من نفس النافذة.
                             </p>
                         </div>
-                        <Button type="button" class="gap-2 bg-blue-800 text-white shadow-xs hover:bg-blue-900" @click="addQualification">
+                        <Button
+                            type="button"
+                            class="gap-2 bg-blue-800 text-white shadow-xs hover:bg-blue-900"
+                            @click="addQualification"
+                        >
                             <Plus class="h-4 w-4" />
                             إضافة مؤهل
                         </Button>
@@ -254,12 +326,16 @@ const qualificationError = (index: number, field: keyof QualificationForm) => {
 
                     <div v-if="form.qualifications.length" class="space-y-3">
                         <div
-                            v-for="(qualification, index) in form.qualifications"
+                            v-for="(
+                                qualification, index
+                            ) in form.qualifications"
                             :key="index"
                             class="relative rounded-xl border border-blue-100 bg-white p-4 shadow-xs"
                         >
                             <div class="mb-3 flex items-center justify-between">
-                                <span class="rounded-full bg-orange-100 px-3 py-1 text-xs font-bold text-orange-700">
+                                <span
+                                    class="rounded-full bg-orange-100 px-3 py-1 text-xs font-bold text-orange-700"
+                                >
                                     مؤهل {{ index + 1 }}
                                 </span>
                                 <button
@@ -272,26 +348,44 @@ const qualificationError = (index: number, field: keyof QualificationForm) => {
                             </div>
 
                             <div class="mb-3 space-y-1">
-                                <Label class="text-xs font-bold text-gray-700">اختيار من المؤهلات الموجودة</Label>
-                                <select
-                                    :value="qualification.id ? String(qualification.id) : '__new__'"
-                                    class="w-full rounded-lg border border-gray-200 bg-gray-50 px-3 py-2 text-sm"
-                                    @change="selectQualification(index, ($event.target as HTMLSelectElement).value)"
+                                <Label class="text-xs font-bold text-gray-700"
+                                    >اختيار من المؤهلات الموجودة</Label
                                 >
-                                    <option value="__new__">إنشاء مؤهل جديد</option>
+                                <select
+                                    :value="
+                                        qualification.id
+                                            ? String(qualification.id)
+                                            : '__new__'
+                                    "
+                                    class="w-full rounded-lg border border-gray-200 bg-gray-50 px-3 py-2 text-sm"
+                                    @change="
+                                        selectQualification(
+                                            index,
+                                            ($event.target as HTMLSelectElement)
+                                                .value,
+                                        )
+                                    "
+                                >
+                                    <option value="__new__">
+                                        إنشاء مؤهل جديد
+                                    </option>
                                     <option
                                         v-for="option in props.qualifications"
                                         :key="option.id"
                                         :value="String(option.id)"
                                     >
-                                        {{ option.degree_name }} - {{ option.institution }}
+                                        {{ option.degree_name }} -
+                                        {{ option.institution }}
                                     </option>
                                 </select>
                             </div>
 
                             <div class="grid gap-3 md:grid-cols-2">
                                 <div class="space-y-1">
-                                    <Label class="text-xs font-bold text-gray-700">اسم المؤهل *</Label>
+                                    <Label
+                                        class="text-xs font-bold text-gray-700"
+                                        >اسم المؤهل *</Label
+                                    >
                                     <input
                                         v-model="qualification.degree_name"
                                         required
@@ -299,13 +393,29 @@ const qualificationError = (index: number, field: keyof QualificationForm) => {
                                         placeholder="مثال: ماجستير"
                                         class="w-full rounded-lg border border-gray-200 bg-gray-50/50 px-3 py-2 text-sm read-only:bg-slate-100 read-only:text-slate-600"
                                     />
-                                    <p v-if="qualificationError(index, 'degree_name')" class="text-[11px] font-semibold text-red-500">
-                                        {{ qualificationError(index, 'degree_name') }}
+                                    <p
+                                        v-if="
+                                            qualificationError(
+                                                index,
+                                                'degree_name',
+                                            )
+                                        "
+                                        class="text-[11px] font-semibold text-red-500"
+                                    >
+                                        {{
+                                            qualificationError(
+                                                index,
+                                                'degree_name',
+                                            )
+                                        }}
                                     </p>
                                 </div>
 
                                 <div class="space-y-1">
-                                    <Label class="text-xs font-bold text-gray-700">المؤسسة المانحة *</Label>
+                                    <Label
+                                        class="text-xs font-bold text-gray-700"
+                                        >المؤسسة المانحة *</Label
+                                    >
                                     <input
                                         v-model="qualification.institution"
                                         required
@@ -313,20 +423,38 @@ const qualificationError = (index: number, field: keyof QualificationForm) => {
                                         placeholder="مثال: جامعة طرابلس"
                                         class="w-full rounded-lg border border-gray-200 bg-gray-50/50 px-3 py-2 text-sm read-only:bg-slate-100 read-only:text-slate-600"
                                     />
-                                    <p v-if="qualificationError(index, 'institution')" class="text-[11px] font-semibold text-red-500">
-                                        {{ qualificationError(index, 'institution') }}
+                                    <p
+                                        v-if="
+                                            qualificationError(
+                                                index,
+                                                'institution',
+                                            )
+                                        "
+                                        class="text-[11px] font-semibold text-red-500"
+                                    >
+                                        {{
+                                            qualificationError(
+                                                index,
+                                                'institution',
+                                            )
+                                        }}
                                     </p>
                                 </div>
                             </div>
                         </div>
                     </div>
 
-                    <p v-else class="rounded-lg border border-dashed border-blue-200 bg-white/60 p-6 text-center text-sm text-gray-400">
+                    <p
+                        v-else
+                        class="rounded-lg border border-dashed border-blue-200 bg-white/60 p-6 text-center text-sm text-gray-400"
+                    >
                         لا توجد مؤهلات مضافة بعد.
                     </p>
                 </section>
 
-                <DialogFooter class="shrink-0 gap-2 border-t border-gray-100 pt-4 sm:justify-start">
+                <DialogFooter
+                    class="shrink-0 gap-2 border-t border-gray-100 pt-4 sm:justify-start"
+                >
                     <Button
                         type="submit"
                         :disabled="form.processing"
@@ -335,7 +463,12 @@ const qualificationError = (index: number, field: keyof QualificationForm) => {
                         <Save class="h-4 w-4" />
                         حفظ العضو
                     </Button>
-                    <Button type="button" variant="outline" class="border-gray-200 text-gray-600" @click="closeModal">
+                    <Button
+                        type="button"
+                        variant="outline"
+                        class="border-gray-200 text-gray-600"
+                        @click="closeModal"
+                    >
                         إلغاء
                     </Button>
                 </DialogFooter>

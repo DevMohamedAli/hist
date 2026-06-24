@@ -1,36 +1,39 @@
-type DateInput = string | number | Date | null | undefined
+type DateInput = string | number | Date | null | undefined;
 
-const dateLocale = 'ar-LY-u-nu-latn'
+const dateLocale = 'ar-LY-u-nu-latn';
 
 const parseDate = (value: DateInput): Date | null => {
     if (value === null || value === undefined || value === '') {
-        return null
+        return null;
     }
 
-    const date = value instanceof Date ? value : new Date(value)
+    const date = value instanceof Date ? value : new Date(value);
 
-    return Number.isNaN(date.getTime()) ? null : date
-}
+    return Number.isNaN(date.getTime()) ? null : date;
+};
 
 export const formatDisplayDate = (value: DateInput, fallback = '-'): string => {
-    const date = parseDate(value)
+    const date = parseDate(value);
 
     if (!date) {
-        return fallback
+        return fallback;
     }
 
     return new Intl.DateTimeFormat(dateLocale, {
         day: '2-digit',
         month: 'long',
         year: 'numeric',
-    }).format(date)
-}
+    }).format(date);
+};
 
-export const formatDisplayDateTime = (value: DateInput, fallback = '-'): string => {
-    const date = parseDate(value)
+export const formatDisplayDateTime = (
+    value: DateInput,
+    fallback = '-',
+): string => {
+    const date = parseDate(value);
 
     if (!date) {
-        return fallback
+        return fallback;
     }
 
     return new Intl.DateTimeFormat(dateLocale, {
@@ -39,36 +42,39 @@ export const formatDisplayDateTime = (value: DateInput, fallback = '-'): string 
         year: 'numeric',
         hour: 'numeric',
         minute: '2-digit',
-    }).format(date)
-}
+    }).format(date);
+};
 
-export const formatRelativeDateTime = (value: DateInput, fallback = '-'): string => {
-    const date = parseDate(value)
+export const formatRelativeDateTime = (
+    value: DateInput,
+    fallback = '-',
+): string => {
+    const date = parseDate(value);
 
     if (!date) {
-        return fallback
+        return fallback;
     }
 
-    const diffMs = Date.now() - date.getTime()
-    const diffMins = Math.floor(diffMs / 60000)
-    const diffHours = Math.floor(diffMs / 3600000)
-    const diffDays = Math.floor(diffMs / 86400000)
+    const diffMs = Date.now() - date.getTime();
+    const diffMins = Math.floor(diffMs / 60000);
+    const diffHours = Math.floor(diffMs / 3600000);
+    const diffDays = Math.floor(diffMs / 86400000);
 
     if (diffMins < 1) {
-        return 'الآن'
+        return 'الآن';
     }
 
     if (diffMins < 60) {
-        return `منذ ${diffMins} دقيقة`
+        return `منذ ${diffMins} دقيقة`;
     }
 
     if (diffHours < 24) {
-        return `منذ ${diffHours} ساعة`
+        return `منذ ${diffHours} ساعة`;
     }
 
     if (diffDays === 1) {
-        return 'أمس'
+        return 'أمس';
     }
 
-    return formatDisplayDateTime(date, fallback)
-}
+    return formatDisplayDateTime(date, fallback);
+};

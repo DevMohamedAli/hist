@@ -6,35 +6,38 @@ import {
     ChevronLeft,
     ChevronRight,
     X,
-} from 'lucide-vue-next'
-import { computed, ref, watch } from 'vue'
+} from 'lucide-vue-next';
+import { computed, ref, watch } from 'vue';
 
-const props = withDefaults(defineProps<{
-    modelValue: string
-    id?: string
-    placeholder?: string
-    required?: boolean
-    disabled?: boolean
-    min?: string
-    max?: string
-    yearRange?: number
-}>(), {
-    placeholder: 'اختر التاريخ',
-    required: false,
-    disabled: false,
-    min: '',
-    max: '',
-    yearRange: 80,
-})
+const props = withDefaults(
+    defineProps<{
+        modelValue: string;
+        id?: string;
+        placeholder?: string;
+        required?: boolean;
+        disabled?: boolean;
+        min?: string;
+        max?: string;
+        yearRange?: number;
+    }>(),
+    {
+        placeholder: 'اختر التاريخ',
+        required: false,
+        disabled: false,
+        min: '',
+        max: '',
+        yearRange: 80,
+    },
+);
 
 const emit = defineEmits<{
-    'update:modelValue': [value: string]
-}>()
+    'update:modelValue': [value: string];
+}>();
 
-const open = ref(false)
-const today = new Date()
-const viewYear = ref(today.getFullYear())
-const viewMonth = ref(today.getMonth())
+const open = ref(false);
+const today = new Date();
+const viewYear = ref(today.getFullYear());
+const viewMonth = ref(today.getMonth());
 
 const monthNames = [
     'يناير',
@@ -49,49 +52,62 @@ const monthNames = [
     'أكتوبر',
     'نوفمبر',
     'ديسمبر',
-]
+];
 
-const weekDays = ['السبت', 'الأحد', 'الاثنين', 'الثلاثاء', 'الأربعاء', 'الخميس', 'الجمعة']
+const weekDays = [
+    'السبت',
+    'الأحد',
+    'الاثنين',
+    'الثلاثاء',
+    'الأربعاء',
+    'الخميس',
+    'الجمعة',
+];
 
-const pad = (value: number) => String(value).padStart(2, '0')
-const toIsoDate = (date: Date) => `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())}`
+const pad = (value: number) => String(value).padStart(2, '0');
+const toIsoDate = (date: Date) =>
+    `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())}`;
 
 const parseIsoDate = (value: string) => {
     if (!/^\d{4}-\d{2}-\d{2}$/.test(value)) {
-        return null
+        return null;
     }
 
-    const [year, month, day] = value.split('-').map(Number)
-    const date = new Date(year, month - 1, day)
+    const [year, month, day] = value.split('-').map(Number);
+    const date = new Date(year, month - 1, day);
 
-    if (date.getFullYear() !== year || date.getMonth() !== month - 1 || date.getDate() !== day) {
-        return null
+    if (
+        date.getFullYear() !== year ||
+        date.getMonth() !== month - 1 ||
+        date.getDate() !== day
+    ) {
+        return null;
     }
 
-    return date
-}
+    return date;
+};
 
-const minDate = computed(() => parseIsoDate(props.min))
-const maxDate = computed(() => parseIsoDate(props.max))
+const minDate = computed(() => parseIsoDate(props.min));
+const maxDate = computed(() => parseIsoDate(props.max));
 
-const selectedDate = computed(() => parseIsoDate(props.modelValue))
+const selectedDate = computed(() => parseIsoDate(props.modelValue));
 
 watch(
     () => props.modelValue,
     (value) => {
-        const parsed = parseIsoDate(value)
+        const parsed = parseIsoDate(value);
 
         if (parsed) {
-            viewYear.value = parsed.getFullYear()
-            viewMonth.value = parsed.getMonth()
+            viewYear.value = parsed.getFullYear();
+            viewMonth.value = parsed.getMonth();
         }
     },
     { immediate: true },
-)
+);
 
 const formattedValue = computed(() => {
     if (!selectedDate.value) {
-        return ''
+        return '';
     }
 
     return new Intl.DateTimeFormat('ar-LY', {
@@ -99,108 +115,119 @@ const formattedValue = computed(() => {
         year: 'numeric',
         month: 'long',
         day: 'numeric',
-    }).format(selectedDate.value)
-})
+    }).format(selectedDate.value);
+});
 
-const monthLabel = computed(() => `${monthNames[viewMonth.value]} ${viewYear.value}`)
+const monthLabel = computed(
+    () => `${monthNames[viewMonth.value]} ${viewYear.value}`,
+);
 
 const yearOptions = computed(() => {
-    const minYear = minDate.value?.getFullYear() ?? today.getFullYear() - props.yearRange
-    const maxYear = maxDate.value?.getFullYear() ?? today.getFullYear() + 10
-    const years: number[] = []
+    const minYear =
+        minDate.value?.getFullYear() ?? today.getFullYear() - props.yearRange;
+    const maxYear = maxDate.value?.getFullYear() ?? today.getFullYear() + 10;
+    const years: number[] = [];
 
     for (let year = maxYear; year >= minYear; year -= 1) {
-        years.push(year)
+        years.push(year);
     }
 
     if (!years.includes(viewYear.value)) {
-        years.push(viewYear.value)
-        years.sort((a, b) => b - a)
+        years.push(viewYear.value);
+        years.sort((a, b) => b - a);
     }
 
-    return years
-})
+    return years;
+});
 
 const calendarDays = computed(() => {
-    const firstDay = new Date(viewYear.value, viewMonth.value, 1)
-    const startOffset = (firstDay.getDay() + 1) % 7
-    const start = new Date(viewYear.value, viewMonth.value, 1 - startOffset)
-    const days: Date[] = []
+    const firstDay = new Date(viewYear.value, viewMonth.value, 1);
+    const startOffset = (firstDay.getDay() + 1) % 7;
+    const start = new Date(viewYear.value, viewMonth.value, 1 - startOffset);
+    const days: Date[] = [];
 
     for (let index = 0; index < 42; index += 1) {
-        days.push(new Date(start.getFullYear(), start.getMonth(), start.getDate() + index))
+        days.push(
+            new Date(
+                start.getFullYear(),
+                start.getMonth(),
+                start.getDate() + index,
+            ),
+        );
     }
 
-    return days
-})
+    return days;
+});
 
 const isDisabledDate = (date: Date) => {
-    const value = toIsoDate(date)
+    const value = toIsoDate(date);
 
-    return Boolean((props.min && value < props.min) || (props.max && value > props.max))
-}
+    return Boolean(
+        (props.min && value < props.min) || (props.max && value > props.max),
+    );
+};
 
-const isSelected = (date: Date) => props.modelValue === toIsoDate(date)
-const isToday = (date: Date) => toIsoDate(date) === toIsoDate(today)
-const isCurrentMonth = (date: Date) => date.getMonth() === viewMonth.value
+const isSelected = (date: Date) => props.modelValue === toIsoDate(date);
+const isToday = (date: Date) => toIsoDate(date) === toIsoDate(today);
+const isCurrentMonth = (date: Date) => date.getMonth() === viewMonth.value;
 
 const clampDayForMonth = (year: number, month: number, day: number) => {
-    return Math.min(day, new Date(year, month + 1, 0).getDate())
-}
+    return Math.min(day, new Date(year, month + 1, 0).getDate());
+};
 
 const setView = (year: number, month: number) => {
-    const normalized = new Date(year, month, 1)
-    viewYear.value = normalized.getFullYear()
-    viewMonth.value = normalized.getMonth()
-}
+    const normalized = new Date(year, month, 1);
+    viewYear.value = normalized.getFullYear();
+    viewMonth.value = normalized.getMonth();
+};
 
-const previousMonth = () => setView(viewYear.value, viewMonth.value - 1)
-const nextMonth = () => setView(viewYear.value, viewMonth.value + 1)
-const previousYear = () => setView(viewYear.value - 1, viewMonth.value)
-const nextYear = () => setView(viewYear.value + 1, viewMonth.value)
+const previousMonth = () => setView(viewYear.value, viewMonth.value - 1);
+const nextMonth = () => setView(viewYear.value, viewMonth.value + 1);
+const previousYear = () => setView(viewYear.value - 1, viewMonth.value);
+const nextYear = () => setView(viewYear.value + 1, viewMonth.value);
 
 const changeMonth = (event: Event) => {
-    const value = Number((event.target as HTMLSelectElement).value)
-    setView(viewYear.value, value)
-}
+    const value = Number((event.target as HTMLSelectElement).value);
+    setView(viewYear.value, value);
+};
 
 const changeYear = (event: Event) => {
-    const value = Number((event.target as HTMLSelectElement).value)
-    setView(value, viewMonth.value)
-}
+    const value = Number((event.target as HTMLSelectElement).value);
+    setView(value, viewMonth.value);
+};
 
 const selectDate = (date: Date) => {
     if (isDisabledDate(date)) {
-        return
+        return;
     }
 
-    emit('update:modelValue', toIsoDate(date))
-    open.value = false
-}
+    emit('update:modelValue', toIsoDate(date));
+    open.value = false;
+};
 
 const selectToday = () => {
     if (isDisabledDate(today)) {
-        return
+        return;
     }
 
-    setView(today.getFullYear(), today.getMonth())
-    emit('update:modelValue', toIsoDate(today))
-    open.value = false
-}
+    setView(today.getFullYear(), today.getMonth());
+    emit('update:modelValue', toIsoDate(today));
+    open.value = false;
+};
 
 const clearDate = () => {
-    emit('update:modelValue', '')
-}
+    emit('update:modelValue', '');
+};
 
 const syncSelectedDayIntoView = () => {
-    const day = selectedDate.value?.getDate() ?? 1
-    const clampedDay = clampDayForMonth(viewYear.value, viewMonth.value, day)
-    const candidate = new Date(viewYear.value, viewMonth.value, clampedDay)
+    const day = selectedDate.value?.getDate() ?? 1;
+    const clampedDay = clampDayForMonth(viewYear.value, viewMonth.value, day);
+    const candidate = new Date(viewYear.value, viewMonth.value, clampedDay);
 
     if (!isDisabledDate(candidate)) {
-        emit('update:modelValue', toIsoDate(candidate))
+        emit('update:modelValue', toIsoDate(candidate));
     }
-}
+};
 </script>
 
 <template>
@@ -213,7 +240,12 @@ const syncSelectedDayIntoView = () => {
             :aria-required="required"
             @click="open = !open"
         >
-            <span class="min-w-0 truncate" :class="formattedValue ? 'font-bold text-gray-950' : 'text-gray-400'">
+            <span
+                class="min-w-0 truncate"
+                :class="
+                    formattedValue ? 'font-bold text-gray-950' : 'text-gray-400'
+                "
+            >
                 {{ formattedValue || placeholder }}
             </span>
             <CalendarDays class="h-5 w-5 shrink-0 text-blue-800" />
@@ -245,7 +277,9 @@ const syncSelectedDayIntoView = () => {
                     </button>
                 </div>
 
-                <p class="text-sm font-extrabold text-blue-950">{{ monthLabel }}</p>
+                <p class="text-sm font-extrabold text-blue-950">
+                    {{ monthLabel }}
+                </p>
 
                 <div class="flex items-center gap-1">
                     <button
@@ -297,7 +331,11 @@ const syncSelectedDayIntoView = () => {
                             :key="year"
                             :value="year"
                         >
-                            {{ year.toLocaleString('ar-LY-u-nu-latn', { useGrouping: false }) }}
+                            {{
+                                year.toLocaleString('ar-LY-u-nu-latn', {
+                                    useGrouping: false,
+                                })
+                            }}
                         </option>
                     </select>
                 </label>
@@ -321,11 +359,13 @@ const syncSelectedDayIntoView = () => {
                         isSelected(date)
                             ? 'bg-blue-800 text-white shadow-sm'
                             : isToday(date)
-                                ? 'bg-orange-50 text-orange-700 ring-1 ring-orange-200'
-                                : isCurrentMonth(date)
-                                    ? 'text-gray-800 hover:bg-blue-50'
-                                    : 'text-gray-300 hover:bg-gray-50',
-                        isDisabledDate(date) ? 'cursor-not-allowed opacity-35 hover:bg-transparent' : '',
+                              ? 'bg-orange-50 text-orange-700 ring-1 ring-orange-200'
+                              : isCurrentMonth(date)
+                                ? 'text-gray-800 hover:bg-blue-50'
+                                : 'text-gray-300 hover:bg-gray-50',
+                        isDisabledDate(date)
+                            ? 'cursor-not-allowed opacity-35 hover:bg-transparent'
+                            : '',
                     ]"
                     :disabled="isDisabledDate(date)"
                     @click="selectDate(date)"
@@ -334,7 +374,9 @@ const syncSelectedDayIntoView = () => {
                 </button>
             </div>
 
-            <div class="mt-3 flex items-center justify-between gap-2 border-t border-gray-100 pt-3">
+            <div
+                class="mt-3 flex items-center justify-between gap-2 border-t border-gray-100 pt-3"
+            >
                 <button
                     type="button"
                     class="rounded-md border border-gray-200 px-3 py-2 text-xs font-bold text-gray-700 hover:bg-gray-50"

@@ -1,61 +1,72 @@
 <script setup lang="ts">
-import { Head, Link } from '@inertiajs/vue3'
-import AuthenticatedLayout from '@/layouts/AuthenticatedLayout.vue'
+import { Head, Link } from '@inertiajs/vue3';
 import {
     ArrowLeft,
     BookOpenCheck,
     CheckCircle2,
     ClipboardList,
     GraduationCap,
+    Lock,
     Search,
     Users,
-} from 'lucide-vue-next'
-import { computed, ref } from 'vue'
+} from 'lucide-vue-next';
+import { computed, ref } from 'vue';
+import AuthenticatedLayout from '@/layouts/AuthenticatedLayout.vue';
 
-defineOptions({ layout: AuthenticatedLayout })
+defineOptions({ layout: AuthenticatedLayout });
 
 interface Course {
-    code?: string | null
-    name?: string | null
-    units?: number | null
+    code?: string | null;
+    name?: string | null;
+    units?: number | null;
 }
 
 interface Semester {
-    code?: string | null
+    code?: string | null;
 }
 
 interface Instructor {
-    name?: string | null
+    name?: string | null;
 }
 
 interface StudyGroup {
-    group_name?: string | null
-    specialization?: { name?: string | null } | null
+    group_name?: string | null;
+    specialization?: { name?: string | null } | null;
 }
 
 interface GradeClass {
-    id: number
-    group_name?: string | null
-    course?: Course | null
-    semester?: Semester | null
-    instructor?: Instructor | null
-    study_group?: StudyGroup | null
-    student_count?: number
-    graded_count?: number
-    pending_count?: number
+    id: number;
+    group_name?: string | null;
+    course?: Course | null;
+    semester?: Semester | null;
+    instructor?: Instructor | null;
+    study_group?: StudyGroup | null;
+    student_count?: number;
+    graded_count?: number;
+    pending_count?: number;
 }
 
 const props = defineProps<{
-    classes: GradeClass[]
-}>()
+    classes: GradeClass[];
+    currentSemester?: {
+        code?: string | null;
+        season?: string | null;
+        year?: number | null;
+    } | null;
+    gradeEntryAvailability?: {
+        is_open: boolean;
+        can_override: boolean;
+        message: string;
+    };
+}>();
 
-const search = ref('')
+const search = ref('');
 
 const filteredClasses = computed(() => {
-    const term = search.value.trim().toLowerCase()
+    const term = search.value.trim().toLowerCase();
 
     if (!term) {
-        return props.classes
+        return props.classes;
     }
 
     return props.classes.filter((item) => {
@@ -69,31 +80,46 @@ const filteredClasses = computed(() => {
             item.instructor?.name,
         ]
             .filter(Boolean)
-            .some((value) => String(value).toLowerCase().includes(term))
-    })
-})
+            .some((value) => String(value).toLowerCase().includes(term));
+    });
+});
 
 const totalStudents = computed(() =>
-    props.classes.reduce((total, item) => total + Number(item.student_count ?? 0), 0),
-)
+    props.classes.reduce(
+        (total, item) => total + Number(item.student_count ?? 0),
+        0,
+    ),
+);
 
 const totalGraded = computed(() =>
-    props.classes.reduce((total, item) => total + Number(item.graded_count ?? 0), 0),
-)
+    props.classes.reduce(
+        (total, item) => total + Number(item.graded_count ?? 0),
+        0,
+    ),
+);
 
 const totalPending = computed(() =>
-    props.classes.reduce((total, item) => total + Number(item.pending_count ?? 0), 0),
-)
+    props.classes.reduce(
+        (total, item) => total + Number(item.pending_count ?? 0),
+        0,
+    ),
+);
 
 const completionPercent = (item: GradeClass) => {
-    const total = Number(item.student_count ?? 0)
+    const total = Number(item.student_count ?? 0);
 
     if (total === 0) {
-        return 0
+        return 0;
     }
 
-    return Math.round((Number(item.graded_count ?? 0) / total) * 100)
-}
+    return Math.round((Number(item.graded_count ?? 0) / total) * 100);
+};
+
+const gradeWindowAccessible = computed(
+    () =>
+        !!props.gradeEntryAvailability?.is_open ||
+        !!props.gradeEntryAvailability?.can_override,
+);
 </script>
 
 <template>
@@ -109,12 +135,14 @@ const completionPercent = (item: GradeClass) => {
                                 <ClipboardList class="h-6 w-6" />
                             </div>
                             <div>
-                                <p class="text-sm font-bold text-orange-600">وحدة الرصد</p>
+                                <p class="text-sm font-bold text-orange-600">
+                                    وحدة الرصد
+                                </p>
                                 <h1 class="mt-1 text-2xl font-extrabold text-blue-900">
                                     رصد الدرجات
                                 </h1>
                                 <p class="mt-2 max-w-3xl text-sm leading-7 text-gray-600">
-                                    اختر الشعبة، راجع حالة الرصد، ثم أدخل أعمال الفصل والامتحان النهائي وفق توزيع 40 / 60.
+                                    تم ضبط الرصد ليتبع دورة الفصل: يفتح في فترة الامتحانات النهائية، ثم يغلق بعدها إلا بإذن من مدير النظام.
                                 </p>
                             </div>
                         </div>
@@ -122,17 +150,47 @@ const completionPercent = (item: GradeClass) => {
                         <div class="grid grid-cols-3 gap-3 text-center">
                             <div class="rounded-md border border-blue-100 bg-blue-50 px-4 py-3">
                                 <p class="text-xs font-bold text-blue-700">الشعب</p>
-                                <p class="mt-1 text-xl font-extrabold text-blue-950">{{ classes.length }}</p>
+                                <p class="mt-1 text-xl font-extrabold text-blue-950">
+                                    {{ classes.length }}
+                                </p>
                             </div>
                             <div class="rounded-md border border-green-100 bg-green-50 px-4 py-3">
                                 <p class="text-xs font-bold text-green-700">مرصود</p>
-                                <p class="mt-1 text-xl font-extrabold text-green-950">{{ totalGraded }}</p>
+                                <p class="mt-1 text-xl font-extrabold text-green-950">
+                                    {{ totalGraded }}
+                                </p>
                             </div>
                             <div class="rounded-md border border-orange-100 bg-orange-50 px-4 py-3">
                                 <p class="text-xs font-bold text-orange-700">قيد الرصد</p>
-                                <p class="mt-1 text-xl font-extrabold text-orange-950">{{ totalPending }}</p>
+                                <p class="mt-1 text-xl font-extrabold text-orange-950">
+                                    {{ totalPending }}
+                                </p>
                             </div>
                         </div>
+                    </div>
+                </div>
+            </section>
+
+            <section
+                class="rounded-lg border p-4 shadow-sm"
+                :class="
+                    props.gradeEntryAvailability?.is_open
+                        ? 'border-green-200 bg-green-50'
+                        : 'border-amber-200 bg-amber-50'
+                "
+            >
+                <div class="flex items-start gap-3">
+                    <Lock class="mt-0.5 h-5 w-5 text-gray-700" />
+                    <div>
+                        <p class="font-bold text-gray-900">
+                            {{ props.gradeEntryAvailability?.message }}
+                        </p>
+                        <p
+                            v-if="props.gradeEntryAvailability?.can_override"
+                            class="mt-1 text-sm text-gray-600"
+                        >
+                            لديك صلاحية تجاوز الإغلاق كمدير نظام عند الضرورة.
+                        </p>
                     </div>
                 </div>
             </section>
@@ -170,8 +228,18 @@ const completionPercent = (item: GradeClass) => {
             <section class="rounded-lg border border-gray-200 bg-white shadow-sm">
                 <div class="flex flex-col gap-3 border-b border-gray-100 p-4 sm:flex-row sm:items-center sm:justify-between">
                     <div>
-                        <h2 class="text-lg font-extrabold text-gray-950">الشعب المتاحة</h2>
-                        <p class="text-sm text-gray-500">النتائج: {{ filteredClasses.length }} شعبة</p>
+                        <h2 class="text-lg font-extrabold text-gray-950">
+                            الشعب المتاحة
+                        </h2>
+                        <p class="text-sm text-gray-500">
+                            النتائج: {{ filteredClasses.length }} شعبة
+                            <span
+                                v-if="props.currentSemester?.code"
+                                class="mr-2 text-gray-400"
+                            >
+                                | الفصل الحالي: {{ props.currentSemester.code }}
+                            </span>
+                        </p>
                     </div>
                     <div class="relative w-full sm:max-w-sm">
                         <Search class="pointer-events-none absolute top-1/2 right-3 h-4 w-4 -translate-y-1/2 text-gray-400" />
@@ -199,7 +267,8 @@ const completionPercent = (item: GradeClass) => {
                                     </h3>
                                 </div>
                                 <p class="mt-1 text-sm text-gray-500">
-                                    {{ item.course?.code ?? '-' }} · {{ item.semester?.code ?? '-' }}
+                                    {{ item.course?.code ?? '-' }} ·
+                                    {{ item.semester?.code ?? '-' }}
                                 </p>
                             </div>
                             <span class="rounded-full bg-blue-50 px-3 py-1 text-xs font-bold text-blue-800">
@@ -210,19 +279,28 @@ const completionPercent = (item: GradeClass) => {
                         <div class="mt-4 grid gap-2 text-sm text-gray-600">
                             <div class="flex justify-between gap-3">
                                 <span>الشعبة</span>
-                                <strong class="text-gray-900">{{ item.study_group?.group_name ?? item.group_name ?? '-' }}</strong>
+                                <strong class="text-gray-900">
+                                    {{ item.study_group?.group_name ?? item.group_name ?? '-' }}
+                                </strong>
                             </div>
                             <div class="flex justify-between gap-3">
                                 <span>التخصص</span>
-                                <strong class="text-gray-900">{{ item.study_group?.specialization?.name ?? '-' }}</strong>
+                                <strong class="text-gray-900">
+                                    {{ item.study_group?.specialization?.name ?? '-' }}
+                                </strong>
                             </div>
                             <div class="flex justify-between gap-3">
                                 <span>المحاضر</span>
-                                <strong class="text-gray-900">{{ item.instructor?.name ?? '-' }}</strong>
+                                <strong class="text-gray-900">
+                                    {{ item.instructor?.name ?? '-' }}
+                                </strong>
                             </div>
                             <div class="flex justify-between gap-3">
                                 <span>الوحدات / الطلاب</span>
-                                <strong class="text-gray-900">{{ item.course?.units ?? 0 }} / {{ item.student_count ?? 0 }}</strong>
+                                <strong class="text-gray-900">
+                                    {{ item.course?.units ?? 0 }} /
+                                    {{ item.student_count ?? 0 }}
+                                </strong>
                             </div>
                         </div>
 
@@ -234,15 +312,25 @@ const completionPercent = (item: GradeClass) => {
                                 />
                             </div>
                             <p class="mt-2 text-xs text-gray-500">
-                                {{ item.graded_count ?? 0 }} محفوظ · {{ item.pending_count ?? 0 }} لم يرصد بعد
+                                {{ item.graded_count ?? 0 }} محفوظ ·
+                                {{ item.pending_count ?? 0 }} لم يرصد بعد
                             </p>
                         </div>
 
                         <Link
                             :href="`/grades/classes/${item.id}`"
-                            class="mt-4 inline-flex w-full items-center justify-center gap-2 rounded-md bg-orange-500 px-4 py-2.5 text-sm font-bold text-white hover:bg-orange-600"
+                            class="mt-4 inline-flex w-full items-center justify-center gap-2 rounded-md px-4 py-2.5 text-sm font-bold text-white"
+                            :class="
+                                gradeWindowAccessible
+                                    ? 'bg-orange-500 hover:bg-orange-600'
+                                    : 'bg-gray-400 hover:bg-gray-500'
+                            "
                         >
-                            فتح كشف الرصد
+                            {{
+                                gradeWindowAccessible
+                                    ? 'فتح كشف الرصد'
+                                    : 'الرصد مغلق حالياً'
+                            }}
                             <ArrowLeft class="h-4 w-4" />
                         </Link>
                     </article>

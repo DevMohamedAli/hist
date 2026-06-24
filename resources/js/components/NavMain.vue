@@ -30,9 +30,14 @@ const { isCurrentUrl } = useCurrentUrl();
                     :tooltip="item.title"
                     class="justify-start text-right"
                 >
-                    <Link :href="item.href" class="flex flex-row-reverse items-center gap-2">
+                    <Link
+                        :href="item.href"
+                        class="flex flex-row-reverse items-center gap-2"
+                    >
                         <component :is="item.icon" class="size-4 shrink-0" />
-                        <span class="min-w-0 flex-1 truncate">{{ item.title }}</span>
+                        <span class="min-w-0 flex-1 truncate">{{
+                            item.title
+                        }}</span>
                     </Link>
                 </SidebarMenuButton>
             </SidebarMenuItem>

@@ -96,7 +96,7 @@ const skeletonRows = Array(5).fill(null);
 </script>
 
 <template>
-    <div class="w-full">
+    <div class="activity-table-component w-full">
         <!-- Desktop Table (visible on md and up) -->
         <div class="hidden md:block overflow-x-auto">
             <Table>
@@ -274,66 +274,3 @@ const skeletonRows = Array(5).fill(null);
         </div>
     </div>
 </template>
-
-<style scoped>
-/* Staggered row animation */
-@keyframes fadeSlideUp {
-    from {
-        opacity: 0;
-        transform: translateY(10px);
-    }
-
-    to {
-        opacity: 1;
-        transform: translateY(0);
-    }
-}
-
-tbody tr,
-.mobile-card {
-    animation: fadeSlideUp 0.3s ease-out forwards;
-    opacity: 0;
-}
-
-tbody tr:nth-child(1),
-.mobile-card:nth-child(1) {
-    animation-delay: 0ms;
-}
-
-tbody tr:nth-child(2),
-.mobile-card:nth-child(2) {
-    animation-delay: 30ms;
-}
-
-tbody tr:nth-child(3),
-.mobile-card:nth-child(3) {
-    animation-delay: 60ms;
-}
-
-tbody tr:nth-child(4),
-.mobile-card:nth-child(4) {
-    animation-delay: 90ms;
-}
-
-tbody tr:nth-child(5),
-.mobile-card:nth-child(5) {
-    animation-delay: 120ms;
-}
-
-/* Line clamp utility */
-.line-clamp-2 {
-    display: -webkit-box;
-    -webkit-line-clamp: 2;
-    line-clamp: 2;
-    -webkit-box-orient: vertical;
-    overflow: hidden;
-}
-
-.line-clamp-3 {
-    display: -webkit-box;
-    -webkit-line-clamp: 3;
-    line-clamp: 3;
-    -webkit-box-orient: vertical;
-    overflow: hidden;
-}
-</style>

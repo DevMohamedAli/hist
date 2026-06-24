@@ -23,15 +23,22 @@ const passwordInput = useTemplateRef('passwordInput');
 
 <template>
     <section class="space-y-4" dir="rtl">
-        <div class="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
+        <div
+            class="flex flex-col gap-3 md:flex-row md:items-center md:justify-between"
+        >
             <div>
-                <p class="flex items-center gap-2 text-sm font-black text-red-700">
+                <p
+                    class="flex items-center gap-2 text-sm font-black text-red-700"
+                >
                     <AlertTriangle class="h-4 w-4" />
                     منطقة حساسة
                 </p>
-                <h2 class="mt-1 text-2xl font-black text-slate-950">حذف الحساب</h2>
+                <h2 class="mt-1 text-2xl font-black text-slate-950">
+                    حذف الحساب
+                </h2>
                 <p class="mt-2 max-w-2xl text-sm leading-7 text-slate-600">
-                    حذف الحساب سيزيل بيانات الدخول والموارد المرتبطة به نهائيا. استخدم هذا الإجراء فقط عند التأكد.
+                    حذف الحساب سيزيل بيانات الدخول والموارد المرتبطة به نهائيا.
+                    استخدم هذا الإجراء فقط عند التأكد.
                 </p>
             </div>
 
@@ -62,7 +69,8 @@ const passwordInput = useTemplateRef('passwordInput');
                                 هل تريد حذف الحساب نهائيا؟
                             </DialogTitle>
                             <DialogDescription class="leading-7">
-                                بعد حذف الحساب لن تتمكن من استعادته من الواجهة. أدخل كلمة المرور لتأكيد العملية.
+                                بعد حذف الحساب لن تتمكن من استعادته من الواجهة.
+                                أدخل كلمة المرور لتأكيد العملية.
                             </DialogDescription>
                         </DialogHeader>
 
@@ -85,7 +93,9 @@ const passwordInput = useTemplateRef('passwordInput');
                                 data-test="confirm-delete-user-button"
                                 class="font-black"
                             >
-                                {{ processing ? 'جار الحذف...' : 'تأكيد الحذف' }}
+                                {{
+                                    processing ? 'جار الحذف...' : 'تأكيد الحذف'
+                                }}
                             </Button>
 
                             <DialogClose as-child>
@@ -107,7 +117,9 @@ const passwordInput = useTemplateRef('passwordInput');
             </Dialog>
         </div>
 
-        <div class="rounded-2xl border border-red-200 bg-red-50 p-4 text-sm font-bold text-red-800">
+        <div
+            class="rounded-2xl border border-red-200 bg-red-50 p-4 text-sm font-bold text-red-800"
+        >
             هذا الإجراء نهائي ولا يمكن التراجع عنه من داخل النظام.
         </div>
     </section>

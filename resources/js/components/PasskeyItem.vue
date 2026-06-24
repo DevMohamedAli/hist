@@ -32,7 +32,10 @@ const handleDelete = () => {
 </script>
 
 <template>
-    <div class="flex items-center justify-between gap-4 border-b border-slate-100 p-4 last:border-b-0" dir="rtl">
+    <div
+        class="flex items-center justify-between gap-4 border-b border-slate-100 p-4 last:border-b-0"
+        dir="rtl"
+    >
         <div class="flex min-w-0 items-center gap-4">
             <div
                 class="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl bg-blue-50"
@@ -41,7 +44,11 @@ const handleDelete = () => {
             </div>
             <div class="min-w-0 space-y-1">
                 <div class="flex flex-wrap items-center gap-2.5">
-                    <p class="truncate font-black tracking-tight text-slate-950">{{ passkey.name }}</p>
+                    <p
+                        class="truncate font-black tracking-tight text-slate-950"
+                    >
+                        {{ passkey.name }}
+                    </p>
                     <span
                         v-if="passkey.authenticator"
                         class="inline-flex items-center gap-1 rounded-full bg-slate-100 px-2 py-0.5 text-[11px] font-black text-slate-500 ring-1 ring-slate-200 ring-inset"
@@ -74,7 +81,8 @@ const handleDelete = () => {
             <DialogContent dir="rtl">
                 <DialogTitle>حذف مفتاح المرور</DialogTitle>
                 <DialogDescription>
-                    هل تريد حذف مفتاح المرور "{{ passkey.name }}"؟ لن تتمكن من استخدامه لتسجيل الدخول بعد الحذف.
+                    هل تريد حذف مفتاح المرور "{{ passkey.name }}"؟ لن تتمكن من
+                    استخدامه لتسجيل الدخول بعد الحذف.
                 </DialogDescription>
                 <DialogFooter class="gap-2">
                     <DialogClose as-child>

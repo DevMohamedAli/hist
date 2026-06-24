@@ -146,7 +146,7 @@ const getStudentBadgeClass = (count: number) => {
 
     <Head title="إسناد المحاضرين للشعب الدراسية" />
 
-    <div class="flex-1 w-full h-full min-h-screen bg-linear-to-br from-slate-50 to-blue-50/30 p-4 md:p-6" dir="rtl">
+    <div class="academic-course-classes-page flex-1 w-full h-full min-h-screen bg-linear-to-br from-slate-50 to-blue-50/30 p-4 md:p-6" dir="rtl">
 
         <div
             class="relative mb-8 overflow-hidden rounded-2xl bg-linear-to-l from-blue-900 via-blue-800 to-orange-600 p-6 shadow-xl">
@@ -348,53 +348,3 @@ const getStudentBadgeClass = (count: number) => {
         </Dialog>
     </div>
 </template>
-
-<style scoped>
-@keyframes fadeSlideUp {
-    from {
-        opacity: 0;
-        transform: translateY(10px);
-    }
-
-    to {
-        opacity: 1;
-        transform: translateY(0);
-    }
-}
-
-tbody tr {
-    animation: fadeSlideUp 0.3s ease-out forwards;
-    opacity: 0;
-}
-
-tbody tr:nth-child(1) {
-    animation-delay: 0ms;
-}
-
-tbody tr:nth-child(2) {
-    animation-delay: 30ms;
-}
-
-tbody tr:nth-child(3) {
-    animation-delay: 60ms;
-}
-
-tbody tr:nth-child(4) {
-    animation-delay: 90ms;
-}
-
-tbody tr:nth-child(5) {
-    animation-delay: 120ms;
-}
-
-.float-button-enter-active,
-.float-button-leave-active {
-    transition: all 0.2s ease;
-}
-
-.float-button-enter-from,
-.float-button-leave-to {
-    opacity: 0;
-    transform: scale(0.8);
-}
-</style>

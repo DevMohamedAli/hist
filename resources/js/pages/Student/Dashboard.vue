@@ -1,7 +1,8 @@
 <script setup lang="ts">
 import { Head, Link } from '@inertiajs/vue3';
 import { BookOpen, GraduationCap, LineChart, UserRound } from 'lucide-vue-next';
-import MinistryNewsFeed, { type MinistryNewsItem } from '@/components/MinistryNewsFeed.vue';
+import MinistryNewsFeed from '@/components/MinistryNewsFeed.vue';
+import type {MinistryNewsItem} from '@/components/MinistryNewsFeed.vue';
 
 interface Student {
     id: number;

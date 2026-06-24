@@ -34,28 +34,47 @@ const deleteQualification = (id: number) => {
     <div class="space-y-4">
         <div class="flex items-center justify-between gap-3">
             <div>
-                <h3 class="text-lg font-bold text-blue-900">المؤهلات العلمية</h3>
-                <p class="text-xs text-slate-500">يعرض الجدول اسم المؤهل والمؤسسة المانحة فقط.</p>
+                <h3 class="text-lg font-bold text-blue-900">
+                    المؤهلات العلمية
+                </h3>
+                <p class="text-xs text-slate-500">
+                    يعرض الجدول اسم المؤهل والمؤسسة المانحة فقط.
+                </p>
             </div>
-            <Button class="gap-2 bg-blue-800 text-white hover:bg-blue-900" @click="emit('add')">
+            <Button
+                class="gap-2 bg-blue-800 text-white hover:bg-blue-900"
+                @click="emit('add')"
+            >
                 <Plus class="h-4 w-4" />
                 إضافة مؤهل
             </Button>
         </div>
 
-        <div class="overflow-hidden rounded-xl border border-blue-100 bg-white shadow-sm">
+        <div
+            class="overflow-hidden rounded-xl border border-blue-100 bg-white shadow-sm"
+        >
             <table class="w-full text-right text-sm">
                 <thead class="bg-blue-50 text-blue-900">
                     <tr>
                         <th class="px-4 py-3 font-semibold">اسم المؤهل</th>
                         <th class="px-4 py-3 font-semibold">المؤسسة المانحة</th>
-                        <th class="px-4 py-3 text-center font-semibold">الإجراءات</th>
+                        <th class="px-4 py-3 text-center font-semibold">
+                            الإجراءات
+                        </th>
                     </tr>
                 </thead>
                 <tbody class="divide-y divide-blue-50">
-                    <tr v-for="qualification in qualifications" :key="qualification.id" class="hover:bg-slate-50">
-                        <td class="px-4 py-3 font-semibold text-slate-900">{{ qualification.degree_name }}</td>
-                        <td class="px-4 py-3 text-slate-700">{{ qualification.institution }}</td>
+                    <tr
+                        v-for="qualification in qualifications"
+                        :key="qualification.id"
+                        class="hover:bg-slate-50"
+                    >
+                        <td class="px-4 py-3 font-semibold text-slate-900">
+                            {{ qualification.degree_name }}
+                        </td>
+                        <td class="px-4 py-3 text-slate-700">
+                            {{ qualification.institution }}
+                        </td>
                         <td class="px-4 py-3">
                             <div class="flex justify-center gap-2">
                                 <Button
@@ -70,7 +89,9 @@ const deleteQualification = (id: number) => {
                                     variant="ghost"
                                     size="sm"
                                     class="text-red-600 hover:text-red-800"
-                                    @click="deleteQualification(qualification.id)"
+                                    @click="
+                                        deleteQualification(qualification.id)
+                                    "
                                 >
                                     <Trash2 class="h-4 w-4" />
                                 </Button>
@@ -78,7 +99,10 @@ const deleteQualification = (id: number) => {
                         </td>
                     </tr>
                     <tr v-if="qualifications.length === 0">
-                        <td colspan="3" class="px-4 py-8 text-center text-slate-500">
+                        <td
+                            colspan="3"
+                            class="px-4 py-8 text-center text-slate-500"
+                        >
                             لا توجد مؤهلات علمية مسجلة لهذا المحاضر.
                         </td>
                     </tr>

@@ -45,12 +45,16 @@ const tabs = [
         >
             <div :class="['h-28 bg-gradient-to-br p-4', preview]">
                 <div class="flex h-full items-start justify-between">
-                    <div class="rounded-2xl bg-white/85 p-3 shadow-sm backdrop-blur dark:bg-white/10">
+                    <div
+                        class="rounded-2xl bg-white/85 p-3 shadow-sm backdrop-blur dark:bg-white/10"
+                    >
                         <component
                             :is="Icon"
                             :class="[
                                 'h-6 w-6',
-                                value === 'dark' ? 'text-orange-300' : 'text-blue-800',
+                                value === 'dark'
+                                    ? 'text-orange-300'
+                                    : 'text-blue-800',
                             ]"
                         />
                     </div>
@@ -63,7 +67,7 @@ const tabs = [
 
             <div class="space-y-2 p-5">
                 <h3 class="text-lg font-black text-slate-950">{{ label }}</h3>
-                <p class="text-sm font-bold leading-6 text-slate-500">
+                <p class="text-sm leading-6 font-bold text-slate-500">
                     {{ description }}
                 </p>
                 <div
@@ -74,7 +78,11 @@ const tabs = [
                             : 'bg-slate-100 text-slate-600 group-hover:bg-blue-50 group-hover:text-blue-900',
                     ]"
                 >
-                    {{ appearance === value ? 'مفعّل حالياً' : 'اختيار هذا النمط' }}
+                    {{
+                        appearance === value
+                            ? 'مفعّل حالياً'
+                            : 'اختيار هذا النمط'
+                    }}
                 </div>
             </div>
         </button>

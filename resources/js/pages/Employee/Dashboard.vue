@@ -9,7 +9,10 @@ import {
     UserPlus,
     Users,
 } from 'lucide-vue-next';
-import MinistryNewsFeed, { type MinistryNewsItem } from '@/components/MinistryNewsFeed.vue';
+import { computed, ref } from 'vue';
+import MinistryNewsFeed from '@/components/MinistryNewsFeed.vue';
+import RegistrationClosedDialog from '@/components/RegistrationClosedDialog.vue';
+import type { MinistryNewsItem } from '@/components/MinistryNewsFeed.vue';
 
 interface Stats {
     students: number;
@@ -20,13 +23,31 @@ interface Stats {
     teachers: number;
 }
 
-defineProps<{
+interface RegistrationStatus {
+    is_open: boolean;
+    message?: string;
+    semester?: {
+        code?: string | null;
+        registration_start?: string | null;
+        registration_end?: string | null;
+    } | null;
+}
+
+const props = defineProps<{
     stats: Stats;
+    registration?: RegistrationStatus;
     ministryNews?: MinistryNewsItem[];
 }>();
 
-const quickLinks = [
-    { title: 'تسجيل طالب جديد', href: '/students/create', icon: UserPlus },
+const registrationDialogOpen = ref(false);
+
+const quickLinks = computed(() => [
+    {
+        title: 'تسجيل طالب جديد',
+        href: '/students/create',
+        icon: UserPlus,
+        requiresRegistration: true,
+    },
     { title: 'إدارة المقررات', href: '/academic/courses', icon: BookOpen },
     {
         title: 'الفصول الدراسية',
@@ -34,8 +55,12 @@ const quickLinks = [
         icon: CalendarRange,
     },
     { title: 'سجل الطلاب', href: '/students', icon: Users },
-    { title: 'سجل النشاطات', href: '/employee/activity-logs', icon: ListChecks },
-];
+    {
+        title: 'سجل النشاطات',
+        href: '/employee/activity-logs',
+        icon: ListChecks,
+    },
+]);
 </script>
 
 <template>
@@ -59,6 +84,20 @@ const quickLinks = [
             </section>
 
             <MinistryNewsFeed :items="ministryNews" />
+
+            <section
+                v-if="registration"
+                class="rounded-xl border p-4 shadow-sm"
+                :class="
+                    registration.is_open
+                        ? 'border-emerald-200 bg-emerald-50'
+                        : 'border-amber-200 bg-amber-50'
+                "
+            >
+                <p class="font-bold text-slate-900">
+                    {{ registration.message }}
+                </p>
+            </section>
 
             <section class="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
                 <div class="rounded-xl bg-white p-5 shadow-sm">
@@ -110,20 +149,41 @@ const quickLinks = [
                     إجراءات سريعة
                 </h2>
                 <div class="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
-                    <Link
-                        v-for="item in quickLinks"
-                        :key="item.href"
-                        :href="item.href"
-                        class="flex items-center gap-3 rounded-xl border p-4 font-bold text-blue-800 transition hover:border-orange-200 hover:bg-orange-50"
-                    >
-                        <component
-                            :is="item.icon"
-                            class="h-5 w-5 text-orange-500"
-                        />
-                        {{ item.title }}
-                    </Link>
+                    <template v-for="item in quickLinks" :key="item.href">
+                        <button
+                            v-if="
+                                item.requiresRegistration &&
+                                !registration?.is_open
+                            "
+                            type="button"
+                            class="flex items-center gap-3 rounded-xl border border-amber-200 bg-amber-50 p-4 text-right font-bold text-amber-900 transition hover:bg-amber-100"
+                            @click="registrationDialogOpen = true"
+                        >
+                            <component
+                                :is="item.icon"
+                                class="h-5 w-5 text-amber-700"
+                            />
+                            {{ item.title }}
+                        </button>
+                        <Link
+                            v-else
+                            :href="item.href"
+                            class="flex items-center gap-3 rounded-xl border p-4 font-bold text-blue-800 transition hover:border-orange-200 hover:bg-orange-50"
+                        >
+                            <component
+                                :is="item.icon"
+                                class="h-5 w-5 text-orange-500"
+                            />
+                            {{ item.title }}
+                        </Link>
+                    </template>
                 </div>
             </section>
         </div>
+
+        <RegistrationClosedDialog
+            v-model:open="registrationDialogOpen"
+            :registration="registration"
+        />
     </main>
 </template>

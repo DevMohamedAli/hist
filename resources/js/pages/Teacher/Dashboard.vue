@@ -7,7 +7,8 @@ import {
     UserCheck,
     Users,
 } from 'lucide-vue-next';
-import MinistryNewsFeed, { type MinistryNewsItem } from '@/components/MinistryNewsFeed.vue';
+import MinistryNewsFeed from '@/components/MinistryNewsFeed.vue';
+import type {MinistryNewsItem} from '@/components/MinistryNewsFeed.vue';
 
 interface Instructor {
     name: string;

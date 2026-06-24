@@ -35,8 +35,13 @@ defineProps<Props>();
                             rel="noopener noreferrer"
                             class="flex flex-row-reverse items-center gap-2"
                         >
-                            <component :is="item.icon" class="size-4 shrink-0" />
-                            <span class="min-w-0 flex-1 truncate">{{ item.title }}</span>
+                            <component
+                                :is="item.icon"
+                                class="size-4 shrink-0"
+                            />
+                            <span class="min-w-0 flex-1 truncate">{{
+                                item.title
+                            }}</span>
                         </a>
                     </SidebarMenuButton>
                 </SidebarMenuItem>
