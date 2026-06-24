@@ -11,11 +11,11 @@ use Modules\Academic\Models\Specialization;
 use Modules\Shared\Http\Controllers\Controller;
 use Modules\Shared\Services\MinistryNewsService;
 use Modules\Staff\Models\Instructor;
+use Modules\Student\Actions\GetPublicRegistrationStatus;
 use Modules\Student\Models\CourseEnrollment;
 use Modules\Student\Models\DepartmentTransfer;
 use Modules\Student\Models\Student;
 use Modules\Student\Models\StudentSemesterSummary;
-use Modules\Student\Actions\GetPublicRegistrationStatus;
 
 class PortalDashboardController extends Controller
 {

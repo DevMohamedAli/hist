@@ -11,7 +11,6 @@ use Illuminate\Support\Str;
 use Illuminate\Validation\Rules\Password;
 use Inertia\Inertia;
 use Laravel\Fortify\Contracts\LoginResponse as LoginResponseContract;
-use Laravel\Fortify\Features;
 use Laravel\Fortify\Fortify;
 use Modules\Auth\Actions\CreateNewUser;
 use Modules\Auth\Actions\ResetUserPassword;

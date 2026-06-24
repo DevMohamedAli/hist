@@ -1,5 +1,7 @@
 <?php
 
+use Illuminate\Http\UploadedFile;
+use Illuminate\Support\Facades\Storage;
 use Modules\Correspondence\Actions\CreateCorrespondence;
 use Modules\Correspondence\Actions\GenerateCorrespondenceReference;
 use Modules\Correspondence\Actions\SubmitCorrespondence;
@@ -8,8 +10,6 @@ use Modules\Correspondence\Enums\CorrespondenceRecipientType;
 use Modules\Correspondence\Enums\CorrespondenceStatus;
 use Modules\Correspondence\Models\CorrespondenceCategory;
 use Modules\User\Models\User;
-use Illuminate\Http\UploadedFile;
-use Illuminate\Support\Facades\Storage;
 use Spatie\Permission\Models\Permission;
 use Spatie\Permission\Models\Role;
 

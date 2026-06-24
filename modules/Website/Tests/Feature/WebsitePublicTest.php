@@ -1,8 +1,8 @@
 <?php
 
+use Modules\User\Models\User;
 use Modules\Website\Enums\WebsiteContentStatus;
 use Modules\Website\Models\Page;
-use Modules\User\Models\User;
 use Spatie\Permission\Models\Permission;
 use Spatie\Permission\Models\Role;
 

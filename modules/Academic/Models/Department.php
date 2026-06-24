@@ -11,6 +11,7 @@ use Spatie\Activitylog\Support\LogOptions;
 
 /**
  * @method static \Illuminate\Database\Eloquent\Builder query()
+ *
  * @mixin \Eloquent
  */
 class Department extends Model

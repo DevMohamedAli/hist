@@ -2,7 +2,6 @@
 
 namespace Modules\Import\Support;
 
-use PhpOffice\PhpSpreadsheet\Cell\Coordinate;
 use PhpOffice\PhpSpreadsheet\IOFactory;
 use PhpOffice\PhpSpreadsheet\Worksheet\Worksheet;
 
@@ -101,12 +100,14 @@ class ConsolidatedStudentCoursesParser
 
             if ($studentName === '' || $courseName === '') {
                 $skippedRows++;
+
                 continue;
             }
 
             if ($workRaw === '' && $totalRaw === '') {
                 $warnings[] = $this->warning($row, $registrationNumber, $courseName, 'grade', 'لا توجد درجة أعمال أو مجموع، تم تخطي الصف.');
                 $skippedRows++;
+
                 continue;
             }
 

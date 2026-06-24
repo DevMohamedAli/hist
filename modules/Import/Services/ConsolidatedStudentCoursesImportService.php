@@ -299,7 +299,7 @@ class ConsolidatedStudentCoursesImportService
     /**
      * Recalculate each touched student/semester summary once after the bulk import.
      *
-     * @param array<int, array<int, bool>> $touchedSummaries
+     * @param  array<int, array<int, bool>>  $touchedSummaries
      */
     private function recalculateTouchedSummaries(array $touchedSummaries): void
     {

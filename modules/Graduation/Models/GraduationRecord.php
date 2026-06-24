@@ -22,7 +22,9 @@ use Modules\User\Models\User;
  * @property-read Student $student
  * @property-read Specialization $specialization
  * @property-read User|null $approver
+ *
  * @method static \Illuminate\Database\Eloquent\Builder query()
+ *
  * @mixin \Eloquent
  */
 class GraduationRecord extends Model

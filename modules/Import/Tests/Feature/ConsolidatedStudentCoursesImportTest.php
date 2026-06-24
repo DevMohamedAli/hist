@@ -6,6 +6,7 @@ use Modules\Academic\Models\Course;
 use Modules\Academic\Models\Department;
 use Modules\Academic\Models\Specialization;
 use Modules\Import\Services\ConsolidatedStudentCoursesImportService;
+use Modules\Import\Support\ConsolidatedStudentCoursesParser;
 use Modules\Student\Models\CourseEnrollment;
 use Modules\Student\Models\Student;
 use PhpOffice\PhpSpreadsheet\Spreadsheet;
@@ -42,7 +43,7 @@ it('parses consolidated workbook sheets and derives final exam from total', func
     $path = writeConsolidatedStudentCoursesFixture();
 
     try {
-        $result = app(Modules\Import\Support\ConsolidatedStudentCoursesParser::class)->parse($path);
+        $result = app(ConsolidatedStudentCoursesParser::class)->parse($path);
     } finally {
         @unlink($path);
     }

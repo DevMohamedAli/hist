@@ -9,6 +9,7 @@ use Modules\Academic\Models\StudyGroup;
 use Modules\Graduation\Models\GraduationRecord;
 use Modules\Staff\Models\Instructor;
 use Modules\Student\Models\CourseEnrollment;
+use Modules\Student\Models\Student;
 use Modules\User\Models\User;
 use Spatie\Permission\Models\Permission;
 use Spatie\Permission\Models\Role;
@@ -43,7 +44,7 @@ function makeGraduationWorkflowStudent(array $totals = [70, 80], bool $attachSec
         'capacity' => 30,
     ]);
     $instructor = Instructor::create(['name' => 'محاضر الاختبار', 'email' => uniqid('teacher').'@example.test']);
-    $student = \Modules\Student\Models\Student::create([
+    $student = Student::create([
         'registration_number' => uniqid('REG'),
         'full_name' => 'طالب اختبار',
         'national_id' => str_pad((string) random_int(1, 999999999999), 12, '0', STR_PAD_LEFT),

@@ -9,8 +9,8 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Database\Eloquent\Relations\MorphMany;
-use Modules\Academic\Models\StudyGroup;
 use Modules\Academic\Models\Specialization;
+use Modules\Academic\Models\StudyGroup;
 use Modules\Graduation\Models\GraduationRecord;
 use Modules\Qualification\Models\Qualification;
 use Modules\Student\Database\Factories\StudentFactory;
@@ -27,7 +27,9 @@ use Spatie\Activitylog\Support\LogOptions;
  * @property int|null $current_specialization_id
  * @property-read Specialization|null $currentSpecialization
  * @property-read GraduationRecord|null $graduationRecord
+ *
  * @method static \Illuminate\Database\Eloquent\Builder query()
+ *
  * @mixin \Eloquent
  */
 class Student extends Model

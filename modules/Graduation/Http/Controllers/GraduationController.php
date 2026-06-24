@@ -6,14 +6,13 @@ use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Collection;
+use Illuminate\Support\Facades\Redirect;
 use Inertia\Inertia;
 use Inertia\Response as InertiaResponse;
-use Illuminate\Support\Facades\Redirect;
 use Modules\Academic\Models\Department;
 use Modules\Academic\Models\Specialization;
 use Modules\Graduation\Actions\ApproveGraduationAction;
 use Modules\Graduation\Actions\GraduationEligibilityAction;
-use Modules\Graduation\Models\GraduationRecord;
 use Modules\Shared\Http\Controllers\Controller;
 use Modules\Student\Models\Student;
 

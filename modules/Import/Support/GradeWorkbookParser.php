@@ -4,6 +4,7 @@ namespace Modules\Import\Support;
 
 use PhpOffice\PhpSpreadsheet\Cell\Coordinate;
 use PhpOffice\PhpSpreadsheet\IOFactory;
+use PhpOffice\PhpSpreadsheet\Spreadsheet;
 use PhpOffice\PhpSpreadsheet\Worksheet\Worksheet;
 
 class GradeWorkbookParser
@@ -532,7 +533,7 @@ class GradeWorkbookParser
         ];
     }
 
-    private function workbookContext(\PhpOffice\PhpSpreadsheet\Spreadsheet $spreadsheet, array $context): array
+    private function workbookContext(Spreadsheet $spreadsheet, array $context): array
     {
         if (! empty($context['year'])) {
             return $context;
