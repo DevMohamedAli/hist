@@ -86,11 +86,11 @@ jobs:
       - name: Prepare database
         run: php artisan migrate --force
 
-      - name: Run frontend type checks
-        run: npm run types:check
-
       - name: Build assets
         run: npm run build
+
+      - name: Run frontend type checks
+        run: npm run types:check
 
       - name: Run tests
         run: php artisan test
