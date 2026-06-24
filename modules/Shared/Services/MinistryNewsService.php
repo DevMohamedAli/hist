@@ -58,7 +58,7 @@ class MinistryNewsService
 
         $previous = libxml_use_internal_errors(true);
         $document = new DOMDocument;
-        $document->loadHTML('<?xml encoding="UTF-8">' . $html, LIBXML_NOERROR | LIBXML_NOWARNING);
+        $document->loadHTML('<?xml encoding="UTF-8">'.$html, LIBXML_NOERROR | LIBXML_NOWARNING);
         libxml_clear_errors();
         libxml_use_internal_errors($previous);
 
@@ -147,9 +147,9 @@ class MinistryNewsService
         }
 
         if (str_starts_with($url, '//')) {
-            return 'https:' . $url;
+            return 'https:'.$url;
         }
 
-        return self::BASE_URL . '/' . ltrim($url, '/');
+        return self::BASE_URL.'/'.ltrim($url, '/');
     }
 }

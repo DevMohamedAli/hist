@@ -4,17 +4,18 @@ namespace Modules\Auth\Http\Controllers;
 
 use Inertia\Inertia;
 use Inertia\Response as InertiaResponse;
+use Modules\Academic\Models\AcademicSemester;
 use Modules\Academic\Models\Course;
 use Modules\Academic\Models\CourseClass;
-use Modules\Academic\Models\AcademicSemester;
 use Modules\Academic\Models\Specialization;
 use Modules\Shared\Http\Controllers\Controller;
 use Modules\Shared\Services\MinistryNewsService;
 use Modules\Staff\Models\Instructor;
-use Modules\Student\Models\DepartmentTransfer;
 use Modules\Student\Models\CourseEnrollment;
+use Modules\Student\Models\DepartmentTransfer;
 use Modules\Student\Models\Student;
 use Modules\Student\Models\StudentSemesterSummary;
+use Modules\Student\Actions\GetPublicRegistrationStatus;
 
 class PortalDashboardController extends Controller
 {
@@ -127,6 +128,17 @@ class PortalDashboardController extends Controller
 
     public function employee(): InertiaResponse
     {
+        $registration = app(GetPublicRegistrationStatus::class)->execute();
+
+        if (! $registration['is_open']) {
+            $currentSemester = AcademicSemester::currentAcademicSemester();
+            $registration['message'] = $currentSemester
+                ? 'التسجيل مغلق حالياً. نافذة '.$currentSemester->code.' انتهت في '.$currentSemester->registration_end?->format('Y-m-d').'.'
+                : 'التسجيل مغلق حالياً لعدم وجود فصل دراسي مفتوح.';
+        } else {
+            $registration['message'] = 'التسجيل مفتوح حتى '.$registration['semester']['registration_end'].'.';
+        }
+
         return Inertia::render('Employee/Dashboard', [
             'stats' => [
                 'students' => Student::count(),
@@ -136,6 +148,7 @@ class PortalDashboardController extends Controller
                 'pending_transfers' => DepartmentTransfer::count(),
                 'teachers' => Instructor::count(),
             ],
+            'registration' => $registration,
             'ministryNews' => $this->ministryNews(),
         ]);
     }

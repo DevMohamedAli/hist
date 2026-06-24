@@ -16,17 +16,16 @@ use Modules\Staff\Models\Instructor;
 use Modules\Student\Models\Student;
 use Modules\User\Database\Factories\UserFactory;
 use Spatie\Activitylog\Models\Activity;
-use Spatie\Permission\Traits\HasRoles;
 use Spatie\Activitylog\Models\Concerns\LogsActivity;
 use Spatie\Activitylog\Support\LogOptions;
+use Spatie\Permission\Traits\HasRoles;
 
 #[Fillable(['name', 'email', 'avatar', 'password', 'email_verified_at'])]
 #[Hidden(['password', 'two_factor_secret', 'two_factor_recovery_codes', 'remember_token'])]
 class User extends Authenticatable implements PasskeyUser
 {
-
     /** @use HasFactory<UserFactory> */
-    use HasRoles, HasFactory, Notifiable, PasskeyAuthenticatable, TwoFactorAuthenticatable, LogsActivity;
+    use HasFactory, HasRoles, LogsActivity, Notifiable, PasskeyAuthenticatable, TwoFactorAuthenticatable;
 
     public function getActivitylogOptions(): LogOptions
     {

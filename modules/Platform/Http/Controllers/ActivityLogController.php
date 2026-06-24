@@ -2,6 +2,9 @@
 
 namespace Modules\Platform\Http\Controllers;
 
+use Barryvdh\DomPDF\Facade\Pdf;
+use Carbon\Carbon;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Gate;
@@ -10,15 +13,10 @@ use Inertia\Inertia;
 use Inertia\Response as InertiaResponse;
 use Maatwebsite\Excel\Facades\Excel;
 use Modules\Academic\Models\Specialization;
-use Modules\Platform\Exports\ActivitiesExport;
-use Modules\User\Models\User;
-use Modules\Shared\Http\Controllers\Controller;
-use Spatie\Activitylog\Models\Activity;
-use Symfony\Component\HttpFoundation\BinaryFileResponse;
 use Modules\Platform\Models\ActivityLogView;
-use Barryvdh\DomPDF\Facade\Pdf;
-use Symfony\Component\HttpFoundation\StreamedResponse;
-
+use Modules\Shared\Http\Controllers\Controller;
+use Modules\User\Models\User;
+use Spatie\Activitylog\Models\Activity;
 
 class ActivityLogController extends Controller
 {
@@ -30,20 +28,20 @@ class ActivityLogController extends Controller
         Gate::authorize('viewActivityLogUi');
 
         $filters = $request->validate([
-            'search'    => 'nullable|string|max:255',
-            'event'     => 'nullable|string|max:50',
+            'search' => 'nullable|string|max:255',
+            'event' => 'nullable|string|max:50',
             'causer_id' => 'nullable|integer|exists:users,id',
             'date_from' => 'nullable|date',
-            'date_to'   => 'nullable|date|after_or_equal:date_from',
-            'per_page'  => 'nullable|integer|in:10,25,50,100',
+            'date_to' => 'nullable|date|after_or_equal:date_from',
+            'per_page' => 'nullable|integer|in:10,25,50,100',
         ]);
 
         $perPage = $filters['per_page'] ?? 25;
 
         $query = Activity::with('causer');
 
-        if (!empty($filters['search'])) {
-            $search = '%' . addcslashes($filters['search'], '%_') . '%';
+        if (! empty($filters['search'])) {
+            $search = '%'.addcslashes($filters['search'], '%_').'%';
             $query->where(function ($q) use ($search) {
                 $q->where('description', 'like', $search)
                     ->orWhere('log_name', 'like', $search)
@@ -51,19 +49,19 @@ class ActivityLogController extends Controller
             });
         }
 
-        if (!empty($filters['event'])) {
+        if (! empty($filters['event'])) {
             $query->where('event', $filters['event']);
         }
 
-        if (!empty($filters['causer_id'])) {
+        if (! empty($filters['causer_id'])) {
             $query->where('causer_id', $filters['causer_id'])
                 ->where('causer_type', User::class);
         }
 
-        if (!empty($filters['date_from'])) {
+        if (! empty($filters['date_from'])) {
             $query->whereDate('created_at', '>=', $filters['date_from']);
         }
-        if (!empty($filters['date_to'])) {
+        if (! empty($filters['date_to'])) {
             $query->whereDate('created_at', '<=', $filters['date_to']);
         }
 
@@ -72,19 +70,19 @@ class ActivityLogController extends Controller
         // Transform each activity for frontend
         $activities->getCollection()->transform(function ($activity) {
             return [
-                'id'           => $activity->id,
-                'log_name'     => $activity->log_name,
-                'description'  => $activity->description,
-                'event'        => $activity->event,
-                'causer'       => $activity->causer ? [
-                    'id'    => $activity->causer->id,
-                    'name'  => $activity->causer->name,
+                'id' => $activity->id,
+                'log_name' => $activity->log_name,
+                'description' => $activity->description,
+                'event' => $activity->event,
+                'causer' => $activity->causer ? [
+                    'id' => $activity->causer->id,
+                    'name' => $activity->causer->name,
                     'email' => $activity->causer->email,
                 ] : null,
                 'subject_type' => $activity->subject_type,
-                'subject_id'   => $activity->subject_id,
-                'properties'   => $activity->properties,
-                'created_at'   => $activity->created_at->toISOString(),
+                'subject_id' => $activity->subject_id,
+                'properties' => $activity->properties,
+                'created_at' => $activity->created_at->toISOString(),
             ];
         });
 
@@ -93,9 +91,9 @@ class ActivityLogController extends Controller
 
         return Inertia::render('Platform/ActivityLog/Index', [
             'activities' => $activities,
-            'filters'    => $filters,
+            'filters' => $filters,
             'eventTypes' => $eventTypes,
-            'causers'    => $causers,
+            'causers' => $causers,
             'specializations' => Specialization::query()
                 ->orderBy('name')
                 ->get(['id', 'name']),
@@ -105,14 +103,12 @@ class ActivityLogController extends Controller
     /**
      * Export activities in the requested format (CSV, Excel, PDF).
      */
-
-
     public function export(Request $request)
     {
         Gate::authorize('viewActivityLogUi');
 
         $request->validate([
-            'format'  => 'required|in:csv,pdf',
+            'format' => 'required|in:csv,pdf',
             'filters' => 'nullable|array',
         ]);
 
@@ -125,24 +121,25 @@ class ActivityLogController extends Controller
 
         if ($format === 'pdf') {
             $pdf = Pdf::loadView('exports.activities-pdf', [
-                'activities'   => $activities,
+                'activities' => $activities,
                 'generated_at' => now(),
-                'filters'      => $filters,
+                'filters' => $filters,
             ]);
+
             return $pdf->download('activities.pdf');
         }
 
         // CSV Export (Native PHP)
-        $filename = 'activities_' . now()->format('Y-m-d_His') . '.csv';
+        $filename = 'activities_'.now()->format('Y-m-d_His').'.csv';
         $headers = [
-            'Content-Type'        => 'text/csv; charset=UTF-8',
-            'Content-Disposition' => 'attachment; filename="' . $filename . '"',
+            'Content-Type' => 'text/csv; charset=UTF-8',
+            'Content-Disposition' => 'attachment; filename="'.$filename.'"',
         ];
 
         $callback = function () use ($activities) {
             $file = fopen('php://output', 'w');
             // Write BOM for UTF-8 (Excel compatibility)
-            fprintf($file, chr(0xEF) . chr(0xBB) . chr(0xBF));
+            fprintf($file, chr(0xEF).chr(0xBB).chr(0xBF));
             // Headers in Arabic
             fputcsv($file, ['#', 'الحدث', 'الوصف', 'المستخدم', 'الموضوع', 'المعرف', 'الخصائص', 'التاريخ']);
             foreach ($activities as $i => $activity) {
@@ -162,6 +159,7 @@ class ActivityLogController extends Controller
 
         return response()->stream($callback, 200, $headers);
     }
+
     /**
      * Get analytics data (stats, event types, top users, timeline, chart data).
      */
@@ -170,11 +168,11 @@ class ActivityLogController extends Controller
         Gate::authorize('viewActivityLogUi');
 
         $filters = $request->validate([
-            'period'     => 'nullable|in:today,7,30,90',
+            'period' => 'nullable|in:today,7,30,90',
             'start_date' => 'nullable|date',
-            'end_date'   => 'nullable|date|after_or_equal:start_date',
-            'event'      => 'nullable|string',
-            'causer_id'  => 'nullable|integer|exists:users,id',
+            'end_date' => 'nullable|date|after_or_equal:start_date',
+            'event' => 'nullable|string',
+            'causer_id' => 'nullable|integer|exists:users,id',
         ]);
 
         $query = Activity::query();
@@ -203,10 +201,10 @@ class ActivityLogController extends Controller
             ->get()
             ->map(function ($item) use ($totalActivities) {
                 return [
-                    'name'       => $item->event,
-                    'count'      => $item->count,
+                    'name' => $item->event,
+                    'count' => $item->count,
                     'percentage' => $totalActivities ? round(($item->count / $totalActivities) * 100, 1) : 0,
-                    'color'      => $this->getEventColor($item->event),
+                    'color' => $this->getEventColor($item->event),
                 ];
             });
 
@@ -221,10 +219,11 @@ class ActivityLogController extends Controller
             ->get()
             ->map(function ($item) {
                 $user = User::find($item->causer_id);
+
                 return [
-                    'id'             => $user?->id,
-                    'name'           => $user?->name ?? 'مستخدم محذوف',
-                    'email'          => $user?->email ?? '',
+                    'id' => $user?->id,
+                    'name' => $user?->name ?? 'مستخدم محذوف',
+                    'email' => $user?->email ?? '',
                     'activity_count' => $item->activity_count,
                 ];
             });
@@ -239,9 +238,9 @@ class ActivityLogController extends Controller
             ->get()
             ->map(function ($item) {
                 return [
-                    'date'      => $item->date,
-                    'day_name'  => \Carbon\Carbon::parse($item->date)->translatedFormat('l'),
-                    'count'     => $item->count,
+                    'date' => $item->date,
+                    'day_name' => Carbon::parse($item->date)->translatedFormat('l'),
+                    'count' => $item->count,
                 ];
             });
 
@@ -249,6 +248,7 @@ class ActivityLogController extends Controller
         $maxCount = $timeline->max('count') ?: 1;
         $timeline = $timeline->map(function ($item) use ($maxCount) {
             $item['percentage'] = round(($item['count'] / $maxCount) * 100, 1);
+
             return $item;
         });
 
@@ -262,8 +262,8 @@ class ActivityLogController extends Controller
             ->get()
             ->map(function ($item) {
                 return [
-                    'type'           => $item->subject_type,
-                    'name'           => class_basename($item->subject_type),
+                    'type' => $item->subject_type,
+                    'name' => class_basename($item->subject_type),
                     'activity_count' => $item->activity_count,
                 ];
             });
@@ -289,7 +289,7 @@ class ActivityLogController extends Controller
             }
             $datasets[] = [
                 'label' => $event,
-                'data'  => $data,
+                'data' => $data,
                 'color' => $this->getEventColor($event),
             ];
         }
@@ -297,16 +297,16 @@ class ActivityLogController extends Controller
         return response()->json([
             'success' => true,
             'data' => [
-                'total_activities'        => $totalActivities,
-                'activities_today'        => $activitiesToday,
-                'activities_this_week'    => $activitiesThisWeek,
-                'activities_this_month'   => $activitiesThisMonth,
-                'event_types'             => $eventTypes,
-                'top_users'               => $topUsers,
-                'timeline'                => $timeline,
-                'popular_models'          => $popularModels,
-                'activity_trends'         => [
-                    'dates'    => $dates,
+                'total_activities' => $totalActivities,
+                'activities_today' => $activitiesToday,
+                'activities_this_week' => $activitiesThisWeek,
+                'activities_this_month' => $activitiesThisMonth,
+                'event_types' => $eventTypes,
+                'top_users' => $topUsers,
+                'timeline' => $timeline,
+                'popular_models' => $popularModels,
+                'activity_trends' => [
+                    'dates' => $dates,
                     'datasets' => $datasets,
                 ],
             ],
@@ -335,9 +335,9 @@ class ActivityLogController extends Controller
         return response()->json([
             'success' => true,
             'data' => [
-                'causers'        => $causers,
-                'event_types'    => $eventTypes->map(fn($e) => ['value' => $e, 'label' => ucfirst($e)]),
-                'subject_types'  => $subjectTypes,
+                'causers' => $causers,
+                'event_types' => $eventTypes->map(fn ($e) => ['value' => $e, 'label' => ucfirst($e)]),
+                'subject_types' => $subjectTypes,
             ],
         ]);
     }
@@ -366,13 +366,13 @@ class ActivityLogController extends Controller
     {
         Gate::authorize('viewActivityLogUi');
         $request->validate([
-            'name'    => 'required|string|max:255',
+            'name' => 'required|string|max:255',
             'filters' => 'nullable|array',
         ]);
 
-        $view = \Modules\Platform\Models\ActivityLogView::create([
+        $view = ActivityLogView::create([
             'user_id' => $request->user()->id,
-            'name'    => $request->name,
+            'name' => $request->name,
             'filters' => $request->filters ?? [],
         ]);
 
@@ -387,7 +387,7 @@ class ActivityLogController extends Controller
         Gate::authorize('viewActivityLogUi');
         $request->validate(['view_id' => 'required|integer|exists:activity_log_views,id']);
 
-        $view = \Modules\Platform\Models\ActivityLogView::where('id', $request->view_id)
+        $view = ActivityLogView::where('id', $request->view_id)
             ->where('user_id', $request->user()->id)
             ->firstOrFail();
 
@@ -399,10 +399,10 @@ class ActivityLogController extends Controller
     /**
      * Helper: apply filters to a query builder.
      */
-    private function applyFiltersToQuery(\Illuminate\Database\Eloquent\Builder $query, array $filters): void
+    private function applyFiltersToQuery(Builder $query, array $filters): void
     {
-        if (!empty($filters['search'])) {
-            $search = '%' . addcslashes($filters['search'], '%_') . '%';
+        if (! empty($filters['search'])) {
+            $search = '%'.addcslashes($filters['search'], '%_').'%';
             $query->where(function ($q) use ($search) {
                 $q->where('description', 'like', $search)
                     ->orWhere('log_name', 'like', $search)
@@ -410,28 +410,28 @@ class ActivityLogController extends Controller
             });
         }
 
-        if (!empty($filters['event'])) {
+        if (! empty($filters['event'])) {
             $query->where('event', $filters['event']);
         }
 
-        if (!empty($filters['causer_id'])) {
+        if (! empty($filters['causer_id'])) {
             $query->where('causer_id', $filters['causer_id'])
                 ->where('causer_type', User::class);
         }
 
-        if (!empty($filters['date_from'])) {
+        if (! empty($filters['date_from'])) {
             $query->whereDate('created_at', '>=', $filters['date_from']);
         }
-        if (!empty($filters['date_to'])) {
+        if (! empty($filters['date_to'])) {
             $query->whereDate('created_at', '<=', $filters['date_to']);
         }
 
-        if (!empty($filters['period'])) {
+        if (! empty($filters['period'])) {
             $start = match ($filters['period']) {
                 'today' => now()->startOfDay(),
-                '7'     => now()->subDays(7),
-                '30'    => now()->subDays(30),
-                '90'    => now()->subDays(90),
+                '7' => now()->subDays(7),
+                '30' => now()->subDays(30),
+                '90' => now()->subDays(90),
                 default => null,
             };
             if ($start) {
@@ -446,13 +446,13 @@ class ActivityLogController extends Controller
     private function getEventColor(string $event): string
     {
         return match ($event) {
-            'created'  => '#10b981', // green
-            'updated'  => '#3b82f6', // blue
-            'deleted'  => '#ef4444', // red
+            'created' => '#10b981', // green
+            'updated' => '#3b82f6', // blue
+            'deleted' => '#ef4444', // red
             'restored' => '#f59e0b', // yellow
-            'login'    => '#8b5cf6', // purple
-            'logout'   => '#6b7280', // gray
-            default    => '#f97316', // orange
+            'login' => '#8b5cf6', // purple
+            'logout' => '#6b7280', // gray
+            default => '#f97316', // orange
         };
     }
 }

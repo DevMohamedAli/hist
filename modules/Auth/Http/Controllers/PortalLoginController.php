@@ -6,10 +6,10 @@ use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
+use Modules\Auth\Support\RoleDashboard;
 use Modules\Shared\Http\Controllers\Controller;
 use Modules\Staff\Models\Instructor;
 use Modules\Student\Models\Student;
-use Modules\Auth\Support\RoleDashboard;
 use Modules\User\Models\User;
 
 class PortalLoginController extends Controller

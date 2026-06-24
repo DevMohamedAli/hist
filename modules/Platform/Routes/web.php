@@ -1,7 +1,7 @@
 <?php
 
-use Illuminate\Support\Facades\Route;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Route;
 use Modules\Auth\Support\RoleDashboard;
 use Modules\Platform\Http\Controllers\ActivityLogController;
 
@@ -12,7 +12,7 @@ use Modules\Platform\Http\Controllers\ActivityLogController;
 | any domain (bounded-context) module.
 */
 
-Route::inertia('/', 'Welcome')->name('home');
+Route::inertia('/portal', 'Welcome')->name('portal.home');
 
 Route::middleware(['auth', 'verified'])->group(function () {
     Route::get('dashboard', fn (Request $request) => redirect()->to(RoleDashboard::pathFor($request->user())))->name('dashboard');

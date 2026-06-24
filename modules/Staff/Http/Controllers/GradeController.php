@@ -97,7 +97,7 @@ class GradeController extends Controller
                 'course_name' => $courseClass->course?->name,
                 'updated_enrollments' => count($validated['grades']),
             ])
-            ->log('تم تحديث درجات الطلاب للمادة ' . $courseClass->course?->name);
+            ->log('تم تحديث درجات الطلاب للمادة '.$courseClass->course?->name);
 
         return back()->with('success', 'تم حفظ جميع الدرجات بنجاح.');
     }

@@ -3,7 +3,8 @@
 namespace Database\Seeders;
 
 use Illuminate\Database\Seeder;
-use Modules\User\Database\Seeders\UserSeeder;
+use Modules\Correspondence\Database\Seeders\CorrespondenceCategorySeeder;
+use Modules\Website\Database\Seeders\WebsiteSettingSeeder;
 
 class DatabaseSeeder extends Seeder
 {
@@ -13,6 +14,9 @@ class DatabaseSeeder extends Seeder
             RolePermissionSeeder::class,
             settingsTableSeeder::class,
             PortalSampleUsersSeeder::class,
+            PharmacyCurriculumSeeder::class,
+            WebsiteSettingSeeder::class,
+            CorrespondenceCategorySeeder::class,
         ]);
     }
 }

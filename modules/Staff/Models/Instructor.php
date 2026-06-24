@@ -4,14 +4,13 @@ namespace Modules\Staff\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
-use Modules\Academic\Models\Department; // adjust namespace if needed
-use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\BelongsTo; // adjust namespace if needed
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\MorphToMany;
 use Modules\Academic\Models\CourseClass;
+use Modules\Academic\Models\Department;
 use Modules\Qualification\Models\Qualification;
 use Modules\User\Models\User; // adjust namespace if needed
-
 use Spatie\Activitylog\Models\Concerns\LogsActivity;
 use Spatie\Activitylog\Support\LogOptions;
 
@@ -25,6 +24,7 @@ class Instructor extends Model
             ->logOnlyDirty()
             ->dontLogEmptyChanges();
     }
+
     use HasFactory;
 
     protected $fillable = [

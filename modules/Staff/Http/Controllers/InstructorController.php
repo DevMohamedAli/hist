@@ -105,8 +105,8 @@ class InstructorController extends Controller
 
         $validated = $request->validate([
             'name' => 'required|string|max:150',
-            'national_id' => 'required|string|size:12|unique:instructors,national_id,' . $instructorId,
-            'email' => 'nullable|email|max:100|unique:instructors,email,' . $instructorId,
+            'national_id' => 'required|string|size:12|unique:instructors,national_id,'.$instructorId,
+            'email' => 'nullable|email|max:100|unique:instructors,email,'.$instructorId,
             'phone' => 'nullable|string|max:30',
             'academic_rank' => 'required|string|max:50',
             'department_id' => 'required|exists:departments,id',
@@ -173,7 +173,7 @@ class InstructorController extends Controller
             ->orderBy('institution')
             ->get(['id', 'degree_name', 'institution'])
             ->unique(fn (Qualification $qualification): string => mb_strtolower(
-                trim($qualification->degree_name) . '|' . trim($qualification->institution),
+                trim($qualification->degree_name).'|'.trim($qualification->institution),
             ))
             ->values();
     }

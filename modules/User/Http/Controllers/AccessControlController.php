@@ -66,7 +66,7 @@ class AccessControlController extends Controller
                 ->get(['id', 'name', 'employee_id'])
                 ->map(fn (Instructor $instructor): array => [
                     'id' => $instructor->id,
-                    'label' => trim($instructor->name . ($instructor->employee_id ? " ({$instructor->employee_id})" : '')),
+                    'label' => trim($instructor->name.($instructor->employee_id ? " ({$instructor->employee_id})" : '')),
                 ]),
             'roleLabels' => $this->labelsFor($roleNames, 'roles'),
             'permissionLabels' => $this->labelsFor($permissions, 'permissions'),

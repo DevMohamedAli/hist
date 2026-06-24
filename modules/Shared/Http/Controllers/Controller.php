@@ -21,10 +21,11 @@ abstract class Controller extends BaseController
     {
         if (is_string($data)) {
             // Check if string is valid UTF-8, if not try to fix it
-            if (!mb_check_encoding($data, 'UTF-8')) {
+            if (! mb_check_encoding($data, 'UTF-8')) {
                 // Try UTF-8 validation/cleaning
                 return mb_convert_encoding($data, 'UTF-8', 'UTF-8');
             }
+
             return $data;
         }
 
@@ -33,6 +34,7 @@ abstract class Controller extends BaseController
             foreach ($data as $key => $value) {
                 $cleaned[$this->cleanUtf8($key)] = $this->cleanUtf8($value);
             }
+
             return $cleaned;
         }
 
@@ -42,10 +44,11 @@ abstract class Controller extends BaseController
                 return $this->cleanUtf8($data->toArray());
             }
 
-            $cleaned = new \stdClass();
+            $cleaned = new \stdClass;
             foreach ($data as $key => $value) {
                 $cleaned->$key = $this->cleanUtf8($value);
             }
+
             return $cleaned;
         }
 

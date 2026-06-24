@@ -5,10 +5,10 @@ use Laravel\Fortify\Features;
 use Modules\User\Models\User;
 use Spatie\Permission\Models\Role;
 
-test('login screen can be rendered', function () {
+test('generic login route redirects to employee portal', function () {
     $response = $this->get(route('login'));
 
-    $response->assertOk();
+    $response->assertRedirect(route('employee.login'));
 });
 
 test('users can authenticate using the login screen', function () {

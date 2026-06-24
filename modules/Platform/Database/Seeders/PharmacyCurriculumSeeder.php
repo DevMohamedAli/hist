@@ -4,8 +4,8 @@ namespace Database\Seeders;
 
 use Illuminate\Database\Seeder;
 use Modules\Academic\Models\Course;
-use Modules\Academic\Models\Specialization;
 use Modules\Academic\Models\Department;
+use Modules\Academic\Models\Specialization;
 
 class PharmacyCurriculumSeeder extends Seeder
 {
@@ -14,7 +14,7 @@ class PharmacyCurriculumSeeder extends Seeder
         // 1. Ensure department and specialization exist
         $department = Department::firstOrCreate(['name' => 'المهن الطبية']);
         $specialization = Specialization::firstOrCreate(
-            ['department_id' => $department->id, 'name' => 'الصيدلة'],
+            ['department_id' => $department->id, 'name' => 'تقنية الصيدلة'],
             ['code' => 'PHARM', 'semesters_count' => 6]
         );
 
@@ -35,14 +35,14 @@ class PharmacyCurriculumSeeder extends Seeder
                 );
 
                 $specialization->courses()->syncWithoutDetaching([
-                    $course->id => ['semester_level' => $semester]
+                    $course->id => ['semester_level' => $semester],
                 ]);
 
                 $allCourses[$name] = $course;
             }
         }
 
-        $this->command->info('Courses created/updated: ' . count($allCourses));
+        $this->command->info('Courses created/updated: '.count($allCourses));
 
         // 4. Define prerequisites (logical flow)
         $prerequisiteMap = $this->prerequisiteMapping();
@@ -50,8 +50,9 @@ class PharmacyCurriculumSeeder extends Seeder
         foreach ($prerequisiteMap as $courseName => $prereqNames) {
             $course = $allCourses[$courseName] ?? Course::where('name', $courseName)->first();
 
-            if (!$course) {
+            if (! $course) {
                 $this->command->warn("Course '{$courseName}' not found for prerequisites");
+
                 continue;
             }
 
@@ -65,7 +66,7 @@ class PharmacyCurriculumSeeder extends Seeder
                 }
             }
 
-            if (!empty($prereqIds)) {
+            if (! empty($prereqIds)) {
                 $course->prerequisites()->syncWithoutDetaching($prereqIds);
             }
         }
@@ -85,7 +86,9 @@ class PharmacyCurriculumSeeder extends Seeder
                 'الكيمياء العامة' => 3,
                 'اللغة الإنجليزية I' => 3,
                 'علم التشريح ووظائف الأعضاء' => 3,
-                // TODO: Add missing semester 1 courses
+                'الفيزياء العامة' => 3,
+                'أساسيات الحاسب الآلي' => 3,
+                'الإحصاء الحيوي' => 2,
             ],
             2 => [
                 'علم أحياء دقيقة العامة' => 3,
@@ -93,7 +96,8 @@ class PharmacyCurriculumSeeder extends Seeder
                 'علم الصيدلانيات I' => 3,
                 'الكيمياء العضوية I' => 3,
                 'الكيمياء التحليلية I' => 3,
-                // TODO: Verify units and add missing semester 2 courses
+                'الكيمياء الحيوية العامة' => 3,
+                'تطبيقات الحاسب الآلي' => 2,
             ],
             3 => [
                 'علم الادوية I' => 3,
@@ -104,7 +108,7 @@ class PharmacyCurriculumSeeder extends Seeder
                 'علم الامراض' => 3,
                 'كيمياء العقاقير' => 3,
                 'الأحياء الدقيقة عامة' => 3,
-                'عقاقير طبية I' => 3
+                'عقاقير طبية I' => 3,
             ],
             4 => [
                 'علم الادوية II' => 3,
@@ -131,8 +135,10 @@ class PharmacyCurriculumSeeder extends Seeder
             ],
             6 => [
                 'مشروع التخرج' => 4,
-                // TODO: Add all semester 6 courses
-            ]
+                'التدريب الميداني' => 4,
+                'الصيدلة السريرية' => 3,
+                'حلقة بحث' => 2,
+            ],
         ];
     }
 
@@ -142,13 +148,15 @@ class PharmacyCurriculumSeeder extends Seeder
         $translit = function_exists('arabic_to_latin') ? arabic_to_latin($clean) : 'CRS';
         $code = strtoupper(substr($translit, 0, 8));
 
-        if (empty($code)) $code = 'CRS';
+        if (empty($code)) {
+            $code = 'CRS';
+        }
 
         $original = $code;
         $counter = 1;
 
         while (Course::where('code', $code)->exists()) {
-            $code = $original . $counter;
+            $code = $original.$counter;
             $counter++;
         }
 

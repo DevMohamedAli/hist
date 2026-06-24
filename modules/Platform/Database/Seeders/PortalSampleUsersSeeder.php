@@ -194,7 +194,11 @@ class PortalSampleUsersSeeder extends Seeder
             [
                 'class_id' => $classA->id,
                 'is_carried' => false,
-                'status' => 'Pending',
+                'raw_semester_work' => 35,
+                'raw_final_exam' => 35,
+                'total_mark' => 70,
+                'grade_evaluation' => 'جيد',
+                'status' => 'Passed',
             ]
         );
 
