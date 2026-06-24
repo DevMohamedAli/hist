@@ -19,7 +19,7 @@ return new class extends Migration
             $table->text('description')->nullable();
 
             // إضافة حقل عدد السمسترات المطلوبة للتخرج (الافتراضي 6 فصول دراسية / 3 سنوات)
-            $table->integer('semesters_count')->default(6)->after('name');
+            $table->integer('semesters_count')->default(6);
 
             $table->timestamps();
         });
