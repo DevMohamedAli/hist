@@ -29,6 +29,26 @@ npm run lint          # fix JS/Vue lint (ESLint)
 npm run format        # fix formatting (Prettier)
 ```
 
+## Docker And CI
+
+The repo now includes a Docker Compose stack with `app`, `web`, `db`, `redis`,
+and `queue` services:
+
+```bash
+docker compose up --build
+```
+
+The app is exposed through Nginx on `http://localhost:8080`.
+
+For Docker, start from `.env.docker.example` and copy it to `.env` before the
+first `docker compose up --build` if you want the container defaults outside the
+host-specific compose overrides.
+
+GitHub Actions now includes:
+
+- `ci.yml` for `composer install`, `npm ci`, `npm run types:check`, `npm run build`, and `php artisan test`
+- `docker-publish.yml` for publishing a container image to GHCR on tags or releases
+
 Generate code straight into a module with [`make:module`](#generating-files-into-a-module-makemodule):
 
 ```bash

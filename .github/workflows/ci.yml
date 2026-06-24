@@ -1,4 +1,4 @@
-name: tests
+name: ci
 
 on:
   push:
@@ -9,36 +9,60 @@ on:
       - main
   workflow_dispatch:
 
-# Cancel superseded runs for the same branch/PR.
 concurrency:
-  group: tests-${{ github.ref }}
+  group: ci-${{ github.ref }}
   cancel-in-progress: true
 
-# Least privilege: this workflow only needs to read the repo.
 permissions:
   contents: read
 
 jobs:
-  tests:
-    name: PHP ${{ matrix.php-version }}
+  ci:
     runs-on: ubuntu-latest
 
-    strategy:
-      fail-fast: false
-      matrix:
-        # The locked Symfony 8 packages require PHP >= 8.4.1, so 8.4 is the floor.
-        php-version: ['8.4', '8.5']
+    env:
+      APP_ENV: testing
+      APP_DEBUG: "true"
+      APP_URL: http://127.0.0.1:8000
+      DB_CONNECTION: mysql
+      DB_HOST: 127.0.0.1
+      DB_PORT: "3306"
+      DB_DATABASE: hist
+      DB_USERNAME: hist
+      DB_PASSWORD: secret
+      REDIS_HOST: 127.0.0.1
+      REDIS_PORT: "6379"
+
+    services:
+      mysql:
+        image: mysql:8.4
+        env:
+          MYSQL_DATABASE: hist
+          MYSQL_USER: hist
+          MYSQL_PASSWORD: secret
+          MYSQL_ROOT_PASSWORD: rootsecret
+        ports:
+          - 3306:3306
+        options: >-
+          --health-cmd="mysqladmin ping -h 127.0.0.1 -uhist -psecret"
+          --health-interval=10s
+          --health-timeout=5s
+          --health-retries=10
+
+      redis:
+        image: redis:7-alpine
+        ports:
+          - 6379:6379
 
     steps:
-      - name: Checkout code
-        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6
         with:
           persist-credentials: false
 
       - name: Setup PHP
         uses: shivammathur/setup-php@7c071dfe9dc99bdf297fa79cb49ea005b9fcadbc # v2
         with:
-          php-version: ${{ matrix.php-version }}
+          php-version: '8.4'
           tools: composer:v2
           coverage: none
 
@@ -59,9 +83,10 @@ jobs:
           cp .env.example .env
           php artisan key:generate
 
-      # Build first: the Vite Wayfinder plugin generates resources/js/{actions,routes}
-      # (gitignored), which the type-check below depends on.
-      - name: Type-check frontend
+      - name: Prepare database
+        run: php artisan migrate --force
+
+      - name: Run frontend type checks
         run: npm run types:check
 
       - name: Build assets
