@@ -3,6 +3,7 @@
 namespace Modules\Student\Models;
 
 use Illuminate\Database\Eloquent\Model;
+use Modules\Academic\Models\AcademicSemester;
 
 class AcademicWarning extends Model
 {
@@ -20,6 +21,6 @@ class AcademicWarning extends Model
 
     public function semester()
     {
-        return $this->belongsTo(\Modules\Academic\Models\AcademicSemester::class, 'academic_semester_id');
+        return $this->belongsTo(AcademicSemester::class, 'academic_semester_id');
     }
 }

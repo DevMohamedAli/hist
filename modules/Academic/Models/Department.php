@@ -6,10 +6,13 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Modules\Academic\Database\Factories\DepartmentFactory;
-
 use Spatie\Activitylog\Models\Concerns\LogsActivity;
 use Spatie\Activitylog\Support\LogOptions;
 
+/**
+ * @method static \Illuminate\Database\Eloquent\Builder query()
+ * @mixin \Eloquent
+ */
 class Department extends Model
 {
     use LogsActivity;
@@ -20,6 +23,7 @@ class Department extends Model
             ->logOnlyDirty()
             ->dontLogEmptyChanges();
     }
+
     /** @use HasFactory<DepartmentFactory> */
     use HasFactory;
 

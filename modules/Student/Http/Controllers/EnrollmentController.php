@@ -12,6 +12,7 @@ use Modules\Academic\Models\Course;
 use Modules\Academic\Models\CourseClass;
 use Modules\Academic\Models\StudyGroup;
 use Modules\Shared\Http\Controllers\Controller;
+use Modules\Student\Actions\ActivateStudentRegistrationWorkflow;
 use Modules\Student\Actions\CalculateCGPAAction;
 use Modules\Student\Models\CourseEnrollment;
 use Modules\Student\Models\Student;
@@ -22,22 +23,44 @@ class EnrollmentController extends Controller
 {
     public function create(int $studentId): InertiaResponse|RedirectResponse
     {
-        $student = Student::with('currentSpecialization.department')->findOrFail($studentId);
+        $student = Student::with(['currentSpecialization.department', 'currentStudyGroup.semester'])->findOrFail($studentId);
         $currentSemester = AcademicSemester::openForRegistration();
 
-        if (! $currentSemester) {
+        if ($student->status === 'Graduated') {
             return redirect()->route('students.show', $student->id)->withErrors([
-                'enrollment' => 'تسجيل وتنزيل المقررات غير متاح حاليا. يفتح التسجيل فقط خلال فترة التسجيل المعتمدة في بداية الفصل الدراسي.',
+                'enrollment' => 'لا يمكن تسجيل أو تنزيل المقررات للطالب المتخرج.',
             ]);
         }
 
-        $studyGroupsQuery = StudyGroup::with('semester')
-            ->where('specialization_id', $student->current_specialization_id);
-        $studyGroupsQuery->where('academic_semester_id', $currentSemester->id);
+        if ($student->status !== 'Active') {
+            return redirect()->route('students.show', $student->id)->withErrors([
+                'enrollment' => 'لا يمكن تنزيل المقررات لطالب غير نشط.',
+            ]);
+        }
+
+        if (! $currentSemester) {
+            return redirect()->route('students.show', $student->id)->withErrors([
+                'enrollment' => 'تسجيل وتنزيل المقررات غير متاح حالياً. يفتح التسجيل فقط خلال فترة التسجيل المعتمدة في بداية الفصل الدراسي.',
+            ]);
+        }
+
+        if (! $student->current_study_group_id
+            || (int) $student->currentStudyGroup?->academic_semester_id !== (int) $currentSemester->id) {
+            app(ActivateStudentRegistrationWorkflow::class)->execute($student);
+            $student->refresh()->loadMissing('currentStudyGroup.semester');
+        }
+
+        $studyGroups = StudyGroup::with('semester')
+            ->where('specialization_id', $student->current_specialization_id)
+            ->where('academic_semester_id', $currentSemester->id)
+            ->orderByRaw('CASE WHEN id = ? THEN 0 ELSE 1 END', [(int) $student->current_study_group_id])
+            ->orderBy('semester_level')
+            ->orderBy('group_name')
+            ->get();
 
         $prerequisites = app(PrerequisiteService::class);
 
-        $studyGroups = $studyGroupsQuery->get()->map(function (StudyGroup $group) use ($student, $prerequisites) {
+        $formattedGroups = $studyGroups->map(function (StudyGroup $group) use ($student, $prerequisites) {
             $courses = $group->courses()->load('prerequisites');
 
             return [
@@ -80,13 +103,23 @@ class EnrollmentController extends Controller
                 'full_name' => $student->full_name,
                 'registration_number' => $student->registration_number,
                 'current_specialization' => $student->currentSpecialization,
+                'current_study_group' => $student->currentStudyGroup ? [
+                    'id' => $student->currentStudyGroup->id,
+                    'group_name' => $student->currentStudyGroup->group_name,
+                    'semester_level' => $student->currentStudyGroup->semester_level,
+                    'semester_code' => $student->currentStudyGroup->semester?->code,
+                ] : null,
                 'status' => $student->status,
                 'cgpa' => $cgpa,
                 'has_warning' => $hasWarning,
             ],
-            'studyGroups' => $studyGroups,
+            'studyGroups' => $formattedGroups,
             'carriedEnrollments' => $carriedEnrollments,
             'currentSemester' => $currentSemester,
+            'assignedStudyGroupId' => $student->current_study_group_id,
+            'workflowMessage' => $student->currentStudyGroup
+                ? 'تم إسناد الطالب تلقائياً إلى مجموعته الدراسية لهذا الفصل، وسيتم تنزيل المواد على هذه المجموعة.'
+                : 'لم يتم العثور على مجموعة مرتبطة بالطالب بعد، ويمكن اختيار المجموعة يدوياً.',
         ]);
     }
 
@@ -108,19 +141,37 @@ class EnrollmentController extends Controller
             'selected_carried_ids.*' => 'nullable|exists:courses,id',
         ]);
 
-        $student = Student::findOrFail($studentId);
+        $student = Student::with(['currentSpecialization', 'currentStudyGroup'])->findOrFail($studentId);
         $group = StudyGroup::findOrFail($validated['study_group_id']);
+
+        if ($student->status === 'Graduated') {
+            return redirect()->route('students.show', $student->id)->withErrors([
+                'enrollment' => 'لا يمكن تسجيل أو تنزيل المقررات للطالب المتخرج.',
+            ]);
+        }
+
+        if ($student->status !== 'Active') {
+            return redirect()->route('students.show', $student->id)->withErrors([
+                'enrollment' => 'لا يمكن تنزيل المقررات لطالب غير نشط.',
+            ]);
+        }
 
         if ((int) $group->academic_semester_id !== (int) $currentSemester->id) {
             return redirect()->back()->withErrors([
-                'study_group_id' => 'الشعبة المختارة لا تتبع الفصل المفتوح حاليا للتسجيل.',
+                'study_group_id' => 'الشعبة المختارة لا تتبع الفصل المفتوح حالياً للتسجيل.',
+            ]);
+        }
+
+        if ($student->current_study_group_id && (int) $student->current_study_group_id !== (int) $group->id) {
+            return redirect()->back()->withErrors([
+                'study_group_id' => 'هذا الطالب مرتبط بمجموعة دراسية أخرى لهذا الفصل، ولا يمكن تنزيل المواد على مجموعة مختلفة.',
             ]);
         }
 
         $groupCourses = $group->courses();
         $groupCourseIds = $groupCourses->pluck('id')->toArray();
-
         $invalidBase = array_diff($validated['selected_course_ids'], $groupCourseIds);
+
         if (! empty($invalidBase)) {
             return redirect()->back()->withErrors([
                 'selected_course_ids' => 'أحد المقررات المختارة لا ينتمي لهذه المجموعة الدراسية.',
@@ -147,7 +198,7 @@ class EnrollmentController extends Controller
         $invalidCarried = array_diff($carriedIds, $allowedCarriedIds);
         if (! empty($invalidCarried)) {
             return redirect()->back()->withErrors([
-                'selected_carried_ids' => 'لا يمكن حمل إلا المقررات الراسبة غير المحمولة سابقا.',
+                'selected_carried_ids' => 'لا يمكن حمل إلا المقررات الراسبة غير المحمولة سابقاً.',
             ]);
         }
 
@@ -169,7 +220,7 @@ class EnrollmentController extends Controller
 
         if ($blockedCourses->isNotEmpty()) {
             $messages = $blockedCourses
-                ->map(fn (array $item): string => $item['course']->name . ' حتى النجاح في المتطلب السابق: ' . $item['missing']->pluck('name')->join('، '))
+                ->map(fn (array $item): string => $item['course']->name.' حتى النجاح في المتطلب السابق: '.$item['missing']->pluck('name')->join('، '))
                 ->values()
                 ->join('؛ ');
 
@@ -187,7 +238,7 @@ class EnrollmentController extends Controller
 
         if ($dependentCarriedCourses->isNotEmpty()) {
             return redirect()->back()->withErrors([
-                'selected_carried_ids' => 'لا يسمح بحمل مقررات يعتمد بعضها على بعض كمتطلبات سابقة: ' . $dependentCarriedCourses->pluck('name')->join('، '),
+                'selected_carried_ids' => 'لا يسمح بحمل مقررات يعتمد بعضها على بعض كمتطلبات سابقة: '.$dependentCarriedCourses->pluck('name')->join('، '),
             ]);
         }
 
@@ -199,7 +250,7 @@ class EnrollmentController extends Controller
         $missingClassCourses = $allCourses->reject(fn (Course $course) => $classesByCourse->has($course->id));
         if ($missingClassCourses->isNotEmpty()) {
             return redirect()->back()->withErrors([
-                'selected_course_ids' => 'لا يمكن تنزيل المواد قبل إسناد محاضر لكل مقرر داخل هذه المجموعة: ' . $missingClassCourses->pluck('name')->join('، '),
+                'selected_course_ids' => 'لا يمكن تنزيل المواد قبل إسناد محاضر لكل مقرر داخل هذه المجموعة: '.$missingClassCourses->pluck('name')->join('، '),
             ]);
         }
 
@@ -209,15 +260,11 @@ class EnrollmentController extends Controller
             ->where('type', 'Warning')
             ->exists();
 
-        $maxAllowed = 18;
-        if ($hasWarning) {
-            $maxAllowed = 12;
-        } elseif ($cgpa >= 75.00) {
-            $maxAllowed = 21;
-        }
-        if (count($carriedIds) > 0) {
-            $maxAllowed = AcademicRegulation::MAX_UNITS_WITH_CARRY;
-        }
+        $maxAllowed = AcademicRegulation::maxUnitsForRegistration(
+            cumulativeAverage: (float) $cgpa,
+            hasWarning: $hasWarning,
+            hasCarriedCourses: count($carriedIds) > 0,
+        );
 
         if ($totalUnits > $maxAllowed) {
             return redirect()->back()->withErrors([
@@ -225,13 +272,15 @@ class EnrollmentController extends Controller
             ]);
         }
 
-        if ($totalUnits < 12 && (int) $group->semester_level !== 6) {
+        if ($totalUnits < AcademicRegulation::MIN_NORMAL_UNITS && (int) $group->semester_level !== 6) {
             return redirect()->back()->withErrors([
                 'study_group_id' => 'فشل التسجيل: لا يمكن التسجيل بأقل من 12 وحدة في الفصل العادي.',
             ]);
         }
 
         DB::transaction(function () use ($student, $group, $baseCourses, $carriedCourses, $classesByCourse) {
+            $student->forceFill(['current_study_group_id' => $group->id])->save();
+
             foreach ($baseCourses as $course) {
                 CourseEnrollment::updateOrCreate(
                     [
@@ -260,6 +309,15 @@ class EnrollmentController extends Controller
                         'status' => 'Pending',
                     ]
                 );
+            }
+
+            if ($carriedCourses->isNotEmpty()) {
+                CourseEnrollment::query()
+                    ->where('student_id', $student->id)
+                    ->whereIn('course_id', $carriedCourses->pluck('id'))
+                    ->where('status', 'Failed')
+                    ->where('is_carried', false)
+                    ->update(['is_carried' => true]);
             }
         });
 
@@ -301,7 +359,7 @@ class EnrollmentController extends Controller
                 ->values(),
             'prerequisite_message' => $missingPrerequisites->isEmpty()
                 ? null
-                : 'لا يمكن تسجيل هذا المقرر حتى النجاح في المتطلب السابق: ' . $missingPrerequisites->pluck('name')->join('، '),
+                : 'لا يمكن تسجيل هذا المقرر حتى النجاح في المتطلب السابق: '.$missingPrerequisites->pluck('name')->join('، '),
         ];
     }
 }

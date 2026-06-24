@@ -8,23 +8,22 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Validation\ValidationException;
 use Inertia\Inertia;
+use Inertia\Response;
 use Inertia\Response as InertiaResponse;
-use Modules\Academic\Models\Specialization;
-use Modules\Shared\Http\Controllers\Controller;
-use Modules\Student\Models\Student;
 use Modules\Academic\Models\AcademicSemester;
-use Modules\Student\Models\StudentSemesterSummary;
-use Modules\Student\Helpers\RegistrationHelper;
-use Modules\Student\Support\AcademicRegulation;
+use Modules\Academic\Models\Specialization;
 use Modules\Platform\Models\Setting;
 use Modules\Qualification\Models\Qualification;
+use Modules\Shared\Http\Controllers\Controller;
+use Modules\Student\Actions\ActivateStudentRegistrationWorkflow;
+use Modules\Student\Helpers\RegistrationHelper;
+use Modules\Student\Models\Student;
+use Modules\Student\Models\StudentSemesterSummary;
+use Modules\Student\Support\AcademicRegulation;
 use Modules\User\Models\User;
 
 class StudentRegistrationController extends Controller
 {
-    /**
-     * عرض قائمة جميع الطلاب المسجلين
-     */
     public function index(Request $request): InertiaResponse
     {
         $search = $request->input('search');
@@ -50,12 +49,12 @@ class StudentRegistrationController extends Controller
         }
 
         $specializations = Specialization::with('department')->get();
-
         $students = $query->paginate(15)->withQueryString();
 
         return Inertia::render('Student/Index', [
             'students' => $this->cleanUtf8($students),
             'specializations' => $this->cleanUtf8($specializations),
+            'registrationAvailability' => $this->registrationAvailability(),
             'filters' => [
                 'search' => $search,
                 'status' => $status,
@@ -64,14 +63,11 @@ class StudentRegistrationController extends Controller
         ]);
     }
 
-    /**
-     * عرض ملف الطالب الأكاديمي الشامل (تفاصيل + سجل درجات + خلاصات)
-     */
-    public function show(int $studentId): \Inertia\Response
+    public function show(int $studentId): Response
     {
-        $student = Student::with('currentSpecialization.department')->findOrFail($studentId);
+        $student = Student::with(['currentSpecialization.department', 'currentStudyGroup.semester'])->findOrFail($studentId);
+        $isGraduated = $student->status === 'Graduated';
 
-        // جلب المقررات والدرجات مع مطابقة مسميات كشوفات الإكسل والواجهة تماماً
         $enrollments = $student->enrollments()
             ->with(['course', 'studyGroup.semester'])
             ->get()
@@ -81,19 +77,15 @@ class StudentRegistrationController extends Controller
                     'course_code' => $enrollment->course->code ?? 'N/A',
                     'course_name' => $enrollment->course->name ?? 'N/A',
                     'units' => $enrollment->course->units ?? 0,
-
-                    // 🚨 التعديل الجوهري: مطابقة مسميات الحقول مع ما تتوقعه صفحة الـ Vue تماماً
                     'semester_work_grade' => $enrollment->raw_semester_work,
                     'final_exam_grade' => $enrollment->raw_final_exam,
                     'total_grade' => $enrollment->total_mark,
-
                     'grade_evaluation' => $enrollment->grade_evaluation,
                     'semester_code' => $enrollment->studyGroup->semester->code ?? 'N/A',
                     'status' => $enrollment->status,
                 ];
             });
 
-        // جلب الخلاصات والمعدلات التراكمية مع احتساب التقدير الكلي
         $summaries = StudentSemesterSummary::where('student_id', $studentId)
             ->with('semester')
             ->get()
@@ -113,71 +105,113 @@ class StudentRegistrationController extends Controller
         $semesters = AcademicSemester::orderBy('year', 'desc')->get();
         $specializations = Specialization::with('department')->get();
         $registrationSemester = AcademicSemester::openForRegistration();
+        $gradeEntrySemester = AcademicSemester::currentAcademicSemester();
+        $gradeEntryOpen = $gradeEntrySemester?->gradeEntryIsOpen() ?? false;
         $hasTransferredBefore = $student->transfers()->exists();
-        $canTransferSpecialization = ! $hasTransferredBefore && (int) $student->current_semester_level <= 2;
+        $canTransferSpecialization = ! $isGraduated
+            && $student->status === 'Active'
+            && ! $hasTransferredBefore
+            && (int) $student->current_semester_level <= 2;
 
-        return \Inertia\Inertia::render('Student/Show', [
+        return Inertia::render('Student/Show', [
             'student' => $this->cleanUtf8($student),
             'enrollments' => $this->cleanUtf8($enrollments),
             'summaries' => $this->cleanUtf8($summaries),
             'semesters' => $this->cleanUtf8($semesters),
             'specializations' => $this->cleanUtf8($specializations),
             'enrollmentAvailability' => [
-                'is_open' => $registrationSemester !== null,
+                'is_open' => $registrationSemester !== null && ! $isGraduated && $student->status === 'Active',
                 'semester' => $registrationSemester ? [
                     'id' => $registrationSemester->id,
                     'code' => $registrationSemester->code,
                     'registration_start' => $registrationSemester->registration_start?->toDateString(),
                     'registration_end' => $registrationSemester->registration_end?->toDateString(),
                 ] : null,
-                'message' => $registrationSemester
-                    ? 'فترة التسجيل مفتوحة حتى ' . $registrationSemester->registration_end?->format('Y-m-d') . '.'
-                    : 'تسجيل وتنزيل المقررات غير متاح حاليا. يفتح التسجيل فقط خلال فترة التسجيل المعتمدة في بداية الفصل الدراسي.',
+                'message' => $isGraduated
+                    ? 'الطالب متخرج بالفعل، ولا يمكن تسجيل أو تنزيل المقررات له.'
+                    : ($registrationSemester
+                    ? 'فترة التسجيل مفتوحة حتى '.$registrationSemester->registration_end?->format('Y-m-d').'.'
+                    : 'تسجيل وتنزيل المقررات غير متاح حالياً. يفتح التسجيل فقط خلال فترة التسجيل المعتمدة في بداية الفصل الدراسي.'),
             ],
             'transferEligibility' => [
                 'can_transfer' => $canTransferSpecialization,
                 'has_transferred_before' => $hasTransferredBefore,
                 'message' => match (true) {
+                    $isGraduated => 'الطالب متخرج بالفعل، ولا يمكن انتقال التخصص له.',
                     $hasTransferredBefore => 'لا يمكن انتقال التخصص أكثر من مرة واحدة خلال مدة الدراسة.',
                     (int) $student->current_semester_level > 2 => 'لا يسمح بانتقال التخصص بعد إكمال أكثر من فصلين دراسيين في التخصص الأصلي.',
                     default => 'يمكن للطالب انتقال التخصص مرة واحدة فقط وفق الضوابط المعتمدة.',
                 },
             ],
+            'workflow' => [
+                'assignment' => $student->currentStudyGroup ? [
+                    'group_name' => $student->currentStudyGroup->group_name,
+                    'semester_level' => $student->currentStudyGroup->semester_level,
+                    'semester_code' => $student->currentStudyGroup->semester?->code,
+                ] : null,
+                'activation_message' => $student->currentStudyGroup
+                    ? 'تم إسناد الطالب إلى مجموعة دراسية ويمكن متابعة تنزيل المواد وفق الفصل المفتوح.'
+                    : 'الطالب محفوظ في النظام، لكن لم يتم إسناده بعد إلى مجموعة دراسية مفتوحة.',
+                'grade_entry' => [
+                    'is_open' => $gradeEntryOpen,
+                    'semester_code' => $gradeEntrySemester?->code,
+                    'message' => $gradeEntryOpen
+                        ? 'رصد الدرجات مفتوح حالياً للشعب التابعة للفصل الجاري.'
+                        : 'رصد الدرجات يبقى مغلقاً حتى بداية فترة الامتحانات النهائية للفصل الجاري.',
+                ],
+            ],
         ]);
     }
 
-    /**
-     * دالة مساعدة لاحتساب التقدير الكلي للسمستر لإظهاره بالواجهة
-     */
     private function calculateGradeEvaluation(float $totalGrade): string
     {
-        if ($totalGrade >= 85) return 'ممتاز';
-        if ($totalGrade >= 75) return 'جيد جداً';
-        if ($totalGrade >= 65) return 'جيد';
-        if ($totalGrade >= 50) return 'مقبول';
-        if ($totalGrade >= 35) return 'ضعيف';
+        if ($totalGrade >= 85) {
+            return 'ممتاز';
+        }
+        if ($totalGrade >= 75) {
+            return 'جيد جداً';
+        }
+        if ($totalGrade >= 65) {
+            return 'جيد';
+        }
+        if ($totalGrade >= 50) {
+            return 'مقبول';
+        }
+        if ($totalGrade >= 35) {
+            return 'ضعيف';
+        }
+
         return 'ضعيف جداً';
     }
 
-    /**
-     * عرض نموذج تسجيل طالب جديد (Form 1)
-     */
-    public function create(): InertiaResponse
+    public function create(): InertiaResponse|RedirectResponse
     {
+        $availability = $this->registrationAvailability();
+
+        if (! $availability['is_open']) {
+            return redirect()->route('students.index')
+                ->withErrors(['registration' => $availability['message']]);
+        }
+
         $specializations = Specialization::with('department')->get();
 
         return Inertia::render('Student/Create', [
             'specializations' => $this->cleanUtf8($specializations),
             'qualifications' => $this->cleanUtf8($this->qualificationOptions()),
             'availableUsers' => $this->cleanUtf8($this->availableStudentUsers()),
+            'registrationAvailability' => $availability,
         ]);
     }
 
-    /**
-     * حفظ بيانات الطالب الجديد وإصدار رقم قيد فرعي
-     */
     public function store(Request $request): RedirectResponse
     {
+        $availability = $this->registrationAvailability();
+
+        if (! $availability['is_open']) {
+            return redirect()->route('students.index')
+                ->withErrors(['registration' => $availability['message']]);
+        }
+
         $validated = $request->validate([
             'full_name' => 'required|string|max:150',
             'national_id' => 'required|string|size:12|unique:students,national_id',
@@ -207,11 +241,12 @@ class StudentRegistrationController extends Controller
             ]);
         }
 
-        $student = DB::transaction(function () use ($validated): Student {
+        $workflow = null;
+
+        $student = DB::transaction(function () use ($validated, &$workflow): Student {
             $validated['status'] = $validated['status'] ?? 'Active';
             $validated['current_semester_level'] = 1;
             $this->applyQualificationSelection($validated);
-
             $validated['registration_number'] = $this->generateUniqueRegistrationNumber($validated['admission_date']);
 
             $student = Student::create(collect($validated)->except([
@@ -225,6 +260,7 @@ class StudentRegistrationController extends Controller
             ])->all());
 
             $this->linkStudentUser($student, $validated);
+            $workflow = app(ActivateStudentRegistrationWorkflow::class)->execute($student);
 
             return $student;
         });
@@ -236,16 +272,18 @@ class StudentRegistrationController extends Controller
                 'attributes' => $student->toArray(),
                 'ip' => $request->ip(),
                 'url' => $request->fullUrl(),
+                'workflow' => [
+                    'activated' => $workflow['activated'] ?? false,
+                    'semester_id' => $workflow['semester']->id ?? null,
+                    'study_group_id' => $workflow['study_group']->id ?? null,
+                ],
             ])
             ->log('تم تسجيل طالب جديد');
 
         return redirect()->route('students.show', $student->id)
-            ->with('success', 'تم تسجيل الطالب الجديد بنجاح وإصدار رقم القيد: ' . $student->registration_number);
+            ->with('success', trim('تم تسجيل الطالب الجديد بنجاح وإصدار رقم القيد: '.$student->registration_number.'. '.($workflow['message'] ?? '')));
     }
 
-    /**
-     * عرض نموذج تعديل بيانات الطالب
-     */
     public function edit(int $studentId): InertiaResponse
     {
         $student = Student::findOrFail($studentId);
@@ -259,9 +297,6 @@ class StudentRegistrationController extends Controller
         ]);
     }
 
-    /**
-     * تحديث بيانات الطالب
-     */
     public function update(Request $request, int $studentId): RedirectResponse
     {
         $student = Student::findOrFail($studentId);
@@ -303,9 +338,6 @@ class StudentRegistrationController extends Controller
             ->with('success', 'تم تحديث بيانات الطالب بنجاح.');
     }
 
-    /**
-     * حذف الطالب من النظام
-     */
     public function destroy(Request $request, int $studentId): RedirectResponse
     {
         $student = Student::findOrFail($studentId);
@@ -328,9 +360,6 @@ class StudentRegistrationController extends Controller
             ->with('success', "تم حذف الطالب: {$studentName} بنجاح.");
     }
 
-    /**
-     * إعادة تفعيل طالب موقوف
-     */
     public function reactivate(Request $request, int $studentId): RedirectResponse
     {
         $student = Student::findOrFail($studentId);
@@ -359,6 +388,7 @@ class StudentRegistrationController extends Controller
         return redirect()->back()
             ->with('success', 'تم إعادة تفعيل الطالب بنجاح.');
     }
+
     private function generateUniqueRegistrationNumber(string $admissionDate): string
     {
         $adminCode = (int) Setting::getValue('admin_code', 0);
@@ -369,7 +399,7 @@ class StudentRegistrationController extends Controller
 
         $prefix = substr(RegistrationHelper::generateStudentId($adminCode, $instituteCode, $year, $semester, 0), 0, 6);
         $lastRegistrationNumber = Student::query()
-            ->where('registration_number', 'like', $prefix . '%')
+            ->where('registration_number', 'like', $prefix.'%')
             ->orderByDesc('registration_number')
             ->value('registration_number');
         $nextSequence = $lastRegistrationNumber ? ((int) substr($lastRegistrationNumber, -3)) + 1 : 1;
@@ -400,13 +430,13 @@ class StudentRegistrationController extends Controller
             ->orderBy('degree_name')
             ->orderBy('institution')
             ->get(['id', 'degree_name', 'institution'])
-            ->unique(fn (Qualification $qualification): string => Qualification::textKey($qualification->degree_name . '|' . $qualification->institution))
+            ->unique(fn (Qualification $qualification): string => Qualification::textKey($qualification->degree_name.'|'.$qualification->institution))
             ->values()
             ->map(fn (Qualification $qualification): array => [
                 'id' => $qualification->id,
                 'degree_name' => $qualification->degree_name,
                 'institution' => $qualification->institution,
-                'label' => trim($qualification->degree_name . ' - ' . $qualification->institution, ' -'),
+                'label' => trim($qualification->degree_name.' - '.$qualification->institution, ' -'),
             ]);
     }
 
@@ -505,5 +535,39 @@ class StudentRegistrationController extends Controller
         $nextLevel = $completedLevels->isEmpty() ? 1 : ((int) $completedLevels->max()) + 1;
 
         return min($maxSemester, max(1, $nextLevel));
+    }
+
+    private function registrationAvailability(): array
+    {
+        $semester = AcademicSemester::openForRegistration();
+
+        if (! $semester) {
+            $currentSemester = AcademicSemester::currentAcademicSemester();
+            $currentCode = $currentSemester?->code;
+
+            return [
+                'is_open' => false,
+                'semester' => $currentSemester ? [
+                    'id' => $currentSemester->id,
+                    'code' => $currentSemester->code,
+                    'registration_start' => $currentSemester->registration_start?->toDateString(),
+                    'registration_end' => $currentSemester->registration_end?->toDateString(),
+                ] : null,
+                'message' => $currentCode
+                    ? 'التسجيل مغلق حالياً. الفصل '.$currentCode.' كانت نافذة تسجيله من '.$currentSemester->registration_start?->format('Y-m-d').' إلى '.$currentSemester->registration_end?->format('Y-m-d').'.'
+                    : 'التسجيل مغلق حالياً لعدم وجود فصل دراسي مفتوح للتسجيل.',
+            ];
+        }
+
+        return [
+            'is_open' => true,
+            'semester' => [
+                'id' => $semester->id,
+                'code' => $semester->code,
+                'registration_start' => $semester->registration_start?->toDateString(),
+                'registration_end' => $semester->registration_end?->toDateString(),
+            ],
+            'message' => 'التسجيل مفتوح حالياً حتى '.$semester->registration_end?->format('Y-m-d').'.',
+        ];
     }
 }

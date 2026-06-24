@@ -5,6 +5,7 @@ namespace Modules\Student\Models;
 use Database\Factories\RegistrationSuspensionFactory;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Modules\Academic\Models\AcademicSemester;
 
 class RegistrationSuspension extends Model
 {
@@ -25,6 +26,6 @@ class RegistrationSuspension extends Model
 
     public function semester()
     {
-        return $this->belongsTo(\Modules\Academic\Models\AcademicSemester::class);
+        return $this->belongsTo(AcademicSemester::class);
     }
 }

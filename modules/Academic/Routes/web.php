@@ -1,14 +1,16 @@
 <?php
 
 use Illuminate\Support\Facades\Route;
-use Modules\Academic\Http\Controllers\CourseController;
+use Modules\Academic\Http\Controllers\AcademicAuditController;
 use Modules\Academic\Http\Controllers\CourseClassController;
+use Modules\Academic\Http\Controllers\CourseController;
 use Modules\Academic\Http\Controllers\DepartmentController;
 use Modules\Academic\Http\Controllers\SemesterController;
 use Modules\Academic\Http\Controllers\SpecializationController;
 use Modules\Academic\Http\Controllers\StudyGroupController;
 
 Route::middleware(['web', 'auth', 'role:employee,super_admin'])->group(function () {
+    Route::get('/academic/audit', AcademicAuditController::class)->name('academic.audit.index');
 
     // --- 1. الأقسام الرئيسية والشعب (Form 6) ---
     Route::get('/academic/departments', [DepartmentController::class, 'index'])->name('academic.departments.index');

@@ -9,7 +9,7 @@ class RecordCourseGrades
 {
     public function execute(int $enrollmentId, float $semesterWork, float $finalExam): CourseEnrollment
     {
-        $enrollment = CourseEnrollment::findOrFail($enrollmentId);
+        $enrollment = CourseEnrollment::with(['class', 'studyGroup'])->findOrFail($enrollmentId);
         $totalGrade = AcademicRegulation::totalGrade($semesterWork, $finalExam);
 
         $enrollment->update([
@@ -19,6 +19,12 @@ class RecordCourseGrades
             'grade_evaluation' => AcademicRegulation::evaluationLabel($totalGrade),
             'status' => AcademicRegulation::courseStatus($semesterWork, $finalExam),
         ]);
+
+        $semesterId = $enrollment->studyGroup?->academic_semester_id ?? $enrollment->class?->semester_id;
+
+        if ($semesterId) {
+            app(RecalculateSemesterSummary::class)->execute($enrollment->student_id, (int) $semesterId);
+        }
 
         return $enrollment;
     }

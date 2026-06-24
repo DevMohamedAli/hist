@@ -87,8 +87,8 @@ class DepartmentController extends Controller
         $department = Department::findOrFail($departmentId);
 
         $validated = $request->validate([
-            'name' => 'required|string|max:100|unique:departments,name,' . $departmentId,
-            'code' => 'nullable|string|max:20|unique:departments,code,' . $departmentId,
+            'name' => 'required|string|max:100|unique:departments,name,'.$departmentId,
+            'code' => 'nullable|string|max:20|unique:departments,code,'.$departmentId,
             'description' => 'nullable|string|max:500',
         ]);
 

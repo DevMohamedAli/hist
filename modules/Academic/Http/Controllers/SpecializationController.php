@@ -99,7 +99,7 @@ class SpecializationController extends Controller
         $validated = $request->validate([
             'department_id' => 'required|exists:departments,id',
             'name' => 'required|string|max:100',
-            'code' => 'nullable|string|max:20|unique:specializations,code,' . $specializationId,
+            'code' => 'nullable|string|max:20|unique:specializations,code,'.$specializationId,
             'description' => 'nullable|string|max:500',
             'semesters_count' => 'required|integer|min:1|max:12',
         ]);

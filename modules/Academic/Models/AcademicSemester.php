@@ -2,8 +2,8 @@
 
 namespace Modules\Academic\Models;
 
-use Database\Factories\AcademicSemesterFactory;
 use Carbon\CarbonInterface;
+use Database\Factories\AcademicSemesterFactory;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\HasMany;
@@ -44,6 +44,41 @@ class AcademicSemester extends Model
             $this->registration_start->copy()->startOfDay(),
             $this->registration_end->copy()->endOfDay(),
         );
+    }
+
+    public function gradeEntryIsOpen(?CarbonInterface $date = null): bool
+    {
+        if (! $this->final_exams_start || ! $this->end_date) {
+            return false;
+        }
+
+        $date ??= now();
+
+        return $date->betweenIncluded(
+            $this->final_exams_start->copy()->startOfDay(),
+            $this->end_date->copy()->endOfDay(),
+        );
+    }
+
+    public static function currentAcademicSemester(?CarbonInterface $date = null): ?self
+    {
+        $date ??= now();
+
+        $current = self::query()
+            ->whereDate('start_date', '<=', $date->toDateString())
+            ->whereDate('end_date', '>=', $date->toDateString())
+            ->orderByDesc('year')
+            ->orderByDesc('start_date')
+            ->first();
+
+        if ($current) {
+            return $current;
+        }
+
+        return self::query()
+            ->orderByDesc('year')
+            ->orderByDesc('start_date')
+            ->first();
     }
 
     public static function openForRegistration(?CarbonInterface $date = null): ?self

@@ -8,10 +8,13 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Modules\Academic\Database\Factories\SpecializationFactory;
-
 use Spatie\Activitylog\Models\Concerns\LogsActivity;
 use Spatie\Activitylog\Support\LogOptions;
 
+/**
+ * @method static \Illuminate\Database\Eloquent\Builder query()
+ * @mixin \Eloquent
+ */
 class Specialization extends Model
 {
     use LogsActivity;
@@ -22,6 +25,7 @@ class Specialization extends Model
             ->logOnlyDirty()
             ->dontLogEmptyChanges();
     }
+
     /** @use HasFactory<SpecializationFactory> */
     use HasFactory;
 
@@ -34,7 +38,6 @@ class Specialization extends Model
     /**
      * Get the department that owns the specialization.
      */
-
     public function department(): BelongsTo
     {
         return $this->belongsTo(Department::class);

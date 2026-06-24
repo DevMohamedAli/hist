@@ -5,6 +5,7 @@ namespace Modules\Student\Models;
 use Database\Factories\DepartmentTransferFactory;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Modules\Academic\Models\Specialization;
 
 class DepartmentTransfer extends Model
 {
@@ -26,11 +27,11 @@ class DepartmentTransfer extends Model
 
     public function fromSpecialization()
     {
-        return $this->belongsTo(\Modules\Academic\Models\Specialization::class, 'from_specialization_id');
+        return $this->belongsTo(Specialization::class, 'from_specialization_id');
     }
 
     public function toSpecialization()
     {
-        return $this->belongsTo(\Modules\Academic\Models\Specialization::class, 'to_specialization_id');
+        return $this->belongsTo(Specialization::class, 'to_specialization_id');
     }
 }

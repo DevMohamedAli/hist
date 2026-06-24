@@ -6,6 +6,7 @@ use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
 use Inertia\Response as InertiaResponse;
+use Modules\Academic\Models\AcademicSemester;
 use Modules\Academic\Models\CourseClass;
 use Modules\Shared\Http\Controllers\Controller;
 use Modules\Student\Actions\RecordCourseGrades;
@@ -17,6 +18,7 @@ class GradeController extends Controller
     public function index(): InertiaResponse
     {
         $user = auth()->user();
+        $currentSemester = AcademicSemester::currentAcademicSemester();
 
         $classes = CourseClass::query()
             ->with(['course', 'semester', 'instructor', 'studyGroup.specialization'])
@@ -25,6 +27,7 @@ class GradeController extends Controller
                 'enrollments as graded_count' => fn ($query) => $query->whereIn('status', ['Passed', 'Failed']),
                 'enrollments as pending_count' => fn ($query) => $query->where('status', 'Pending'),
             ])
+            ->when($currentSemester, fn ($query) => $query->where('semester_id', $currentSemester->id))
             ->when($this->isTeacherOnly($user), function ($query) use ($user) {
                 $query->whereHas('instructor', fn ($instructorQuery) => $instructorQuery->where('user_id', $user->id));
             })
@@ -33,13 +36,32 @@ class GradeController extends Controller
 
         return Inertia::render('Student/Grades/Index', [
             'classes' => $this->cleanUtf8($classes),
+            'currentSemester' => $currentSemester ? [
+                'id' => $currentSemester->id,
+                'code' => $currentSemester->code,
+                'season' => $currentSemester->season,
+                'year' => $currentSemester->year,
+            ] : null,
+            'gradeEntryAvailability' => [
+                'is_open' => $currentSemester?->gradeEntryIsOpen() ?? false,
+                'can_override' => $this->canOverrideGradeWindow($user),
+                'message' => $currentSemester?->gradeEntryIsOpen()
+                    ? 'رصد الدرجات مفتوح الآن لأن الفصل الحالي دخل فترة الامتحانات النهائية.'
+                    : 'رصد الدرجات سيبقى مغلقاً حتى بداية الامتحانات النهائية، ولا يفتح خارجها إلا بإذن من مدير النظام.',
+            ],
         ]);
     }
 
-    public function showClassGrades(int $classId): InertiaResponse
+    public function showClassGrades(int $classId): InertiaResponse|RedirectResponse
     {
         $class = CourseClass::with(['course', 'semester', 'instructor', 'studyGroup.specialization'])->findOrFail($classId);
         $this->authorizeClassAccess($class);
+
+        if (! $this->canAccessGradeEntryWindow($class)) {
+            return redirect()->route('grades.index')->withErrors([
+                'grades' => 'رصد الدرجات مغلق حالياً لهذه الشعبة حتى دخول الفصل فترة الامتحانات النهائية أو بتدخل من مدير النظام.',
+            ]);
+        }
 
         $enrollments = CourseEnrollment::where('class_id', $classId)
             ->with('student')
@@ -59,6 +81,10 @@ class GradeController extends Controller
         return Inertia::render('Student/Grades/ShowClass', [
             'courseClass' => $this->cleanUtf8($class),
             'enrollments' => $this->cleanUtf8($enrollments),
+            'gradeEntryAvailability' => [
+                'is_open' => $class->semester?->gradeEntryIsOpen() ?? false,
+                'can_override' => $this->canOverrideGradeWindow(auth()->user()),
+            ],
         ]);
     }
 
@@ -73,8 +99,14 @@ class GradeController extends Controller
             'final_exam.max' => 'درجة الامتحان النهائي لا يمكن أن تتجاوز 60.',
         ]);
 
-        $enrollment = CourseEnrollment::with('class')->findOrFail($validated['enrollment_id']);
+        $enrollment = CourseEnrollment::with('class.semester')->findOrFail($validated['enrollment_id']);
         $this->authorizeClassAccess($enrollment->class);
+
+        if (! $this->canAccessGradeEntryWindow($enrollment->class)) {
+            return redirect()->back()->withErrors([
+                'grades' => 'لا يمكن حفظ الدرجات حالياً لأن نافذة رصد الدرجات مغلقة لهذه الشعبة.',
+            ]);
+        }
 
         $enrollment = $recordCourseGrades->execute(
             (int) $validated['enrollment_id'],
@@ -123,6 +155,21 @@ class GradeController extends Controller
                 'غير مصرح لك برصد درجات هذه الشعبة.'
             );
         }
+    }
+
+    private function canAccessGradeEntryWindow(?CourseClass $class): bool
+    {
+        if (! $class) {
+            return false;
+        }
+
+        return ($class->semester?->gradeEntryIsOpen() ?? false)
+            || $this->canOverrideGradeWindow(auth()->user());
+    }
+
+    private function canOverrideGradeWindow(?User $user): bool
+    {
+        return (bool) $user?->hasRole('super_admin');
     }
 
     private function isTeacherOnly(?User $user): bool

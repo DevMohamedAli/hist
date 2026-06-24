@@ -42,3 +42,16 @@ it('checks warnings dismissal carry and graduation project gates', function () {
 
     expect(AcademicRegulation::shouldDismissForConsecutiveLowCumulative($summaries))->toBeTrue();
 });
+
+it('centralizes registration unit limits', function () {
+    expect(AcademicRegulation::maxUnitsForRegistration(70))->toBe(18)
+        ->and(AcademicRegulation::maxUnitsForRegistration(75))->toBe(21)
+        ->and(AcademicRegulation::maxUnitsForRegistration(80, hasWarning: true))->toBe(12)
+        ->and(AcademicRegulation::maxUnitsForRegistration(54, hasCarriedCourses: true))->toBe(24);
+
+    expect(AcademicRegulation::registrationUnitEligibility(11, 70)['eligible'])->toBeFalse()
+        ->and(AcademicRegulation::registrationUnitEligibility(12, 70)['eligible'])->toBeTrue()
+        ->and(AcademicRegulation::registrationUnitEligibility(22, 80)['eligible'])->toBeFalse()
+        ->and(AcademicRegulation::registrationUnitEligibility(22, 80, hasCarriedCourses: true)['eligible'])->toBeTrue()
+        ->and(AcademicRegulation::registrationUnitEligibility(3, 70, isGraduatingLevel: true)['eligible'])->toBeTrue();
+});

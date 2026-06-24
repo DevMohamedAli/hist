@@ -2,8 +2,8 @@
 
 namespace Modules\Student\Actions;
 
-use Modules\Student\Models\Student;
 use Modules\Student\Models\AcademicWarning;
+use Modules\Student\Models\Student;
 
 class CheckAcademicWarningsAction
 {
@@ -29,6 +29,7 @@ class CheckAcademicWarningsAction
 
         if ($veryWeakWarnings >= 2 && $student->current_semester_level <= 2) {
             $this->dismissStudent($student, $semesterId, 'الحصول على تقدير ضعيف جداً في الفصلين الأول والثاني المتتاليين.');
+
             return;
         }
 
@@ -39,6 +40,7 @@ class CheckAcademicWarningsAction
 
         if ($cgpaWarnings >= 3) {
             $this->dismissStudent($student, $semesterId, 'انخفاض المعدل التراكمي عن 55% لثلاثة فصول دراسية متتالية.');
+
             return;
         }
     }
@@ -51,7 +53,7 @@ class CheckAcademicWarningsAction
             'academic_semester_id' => $semesterId,
             'reason' => $reason,
         ], [
-            'type' => $type
+            'type' => $type,
         ]);
     }
 

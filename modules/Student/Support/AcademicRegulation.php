@@ -7,11 +7,23 @@ use Illuminate\Support\Collection;
 class AcademicRegulation
 {
     public const FINAL_EXAM_MAX = 60.0;
+
     public const SEMESTER_WORK_MAX = 40.0;
+
     public const PASS_TOTAL = 50.0;
+
     public const MIN_FINAL_PERCENT = 50.0;
+
     public const MIN_CUMULATIVE_AVERAGE = 55.0;
+
+    public const MIN_NORMAL_UNITS = 12;
+
+    public const MAX_NORMAL_UNITS = 18;
+
+    public const MAX_HIGH_ACHIEVER_UNITS = 21;
+
     public const MAX_CARRIED_COURSES = 2;
+
     public const MAX_UNITS_WITH_CARRY = 24;
 
     public static function evaluationLabel(float $percentage): string
@@ -78,6 +90,51 @@ class AcademicRegulation
     public static function carriedUnitsWithinLimit(int $destinationUnits): bool
     {
         return $destinationUnits <= self::MAX_UNITS_WITH_CARRY;
+    }
+
+    public static function maxUnitsForRegistration(float $cumulativeAverage, bool $hasWarning = false, bool $hasCarriedCourses = false): int
+    {
+        if ($hasCarriedCourses) {
+            return self::MAX_UNITS_WITH_CARRY;
+        }
+
+        if ($hasWarning) {
+            return self::MIN_NORMAL_UNITS;
+        }
+
+        return $cumulativeAverage >= 75.0
+            ? self::MAX_HIGH_ACHIEVER_UNITS
+            : self::MAX_NORMAL_UNITS;
+    }
+
+    /**
+     * @return array{eligible: bool, min: int, max: int, reasons: array<int, string>}
+     */
+    public static function registrationUnitEligibility(
+        int $totalUnits,
+        float $cumulativeAverage,
+        bool $hasWarning = false,
+        bool $hasCarriedCourses = false,
+        bool $isGraduatingLevel = false,
+    ): array {
+        $min = $isGraduatingLevel ? 0 : self::MIN_NORMAL_UNITS;
+        $max = self::maxUnitsForRegistration($cumulativeAverage, $hasWarning, $hasCarriedCourses);
+        $reasons = [];
+
+        if ($totalUnits > $max) {
+            $reasons[] = "Total registered units ({$totalUnits}) exceed the allowed maximum ({$max}).";
+        }
+
+        if ($totalUnits < $min) {
+            $reasons[] = "Total registered units ({$totalUnits}) are below the required minimum ({$min}).";
+        }
+
+        return [
+            'eligible' => $reasons === [],
+            'min' => $min,
+            'max' => $max,
+            'reasons' => $reasons,
+        ];
     }
 
     public static function shouldWarnForSemester(float $semesterAverage, float $cumulativeAverage): bool

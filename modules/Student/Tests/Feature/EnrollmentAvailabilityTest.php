@@ -35,3 +35,21 @@ it('does not allow opening the enrollment page outside the registration period',
     $response->assertRedirect(route('students.show', $student));
     $response->assertSessionHasErrors('enrollment');
 });
+
+it('does not allow opening student registration outside the registration period', function () {
+    $user = User::factory()->create();
+    $role = Role::findOrCreate('super_admin', 'web');
+    $user->assignRole($role);
+    $department = Department::create(['name' => 'قسم التسجيل العام', 'code' => 'RE2']);
+    Specialization::create([
+        'department_id' => $department->id,
+        'name' => 'تخصص القبول',
+        'code' => 'REG-2',
+        'semesters_count' => 6,
+    ]);
+
+    $response = $this->actingAs($user)->get(route('students.create'));
+
+    $response->assertRedirect(route('students.index'));
+    $response->assertSessionHasErrors('registration');
+});

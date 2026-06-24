@@ -4,6 +4,7 @@ namespace Modules\Student\Http\Controllers;
 
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Modules\Academic\Models\Specialization;
 use Modules\Shared\Http\Controllers\Controller;
 use Modules\Student\Models\DepartmentTransfer;
 use Modules\Student\Models\Student;
@@ -19,6 +20,12 @@ class StudentTransferController extends Controller
         ]);
 
         $student = Student::findOrFail($studentId);
+
+        if ($student->status === 'Graduated') {
+            return redirect()->back()->withErrors([
+                'transfer' => 'لا يمكن نقل تخصص الطالب المتخرج.',
+            ]);
+        }
 
         if ((int) $student->current_semester_level > 2) {
             return redirect()->back()->withErrors([
@@ -53,8 +60,8 @@ class StudentTransferController extends Controller
             'current_specialization_id' => $validated['to_specialization_id'],
         ]);
 
-        $fromSpec = \Modules\Academic\Models\Specialization::find($transfer->from_specialization_id);
-        $toSpec = \Modules\Academic\Models\Specialization::find($transfer->to_specialization_id);
+        $fromSpec = Specialization::find($transfer->from_specialization_id);
+        $toSpec = Specialization::find($transfer->to_specialization_id);
 
         activity()
             ->causedBy($request->user())

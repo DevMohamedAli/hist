@@ -8,6 +8,7 @@ use Illuminate\Support\Arr;
 use Inertia\Inertia;
 use Inertia\Response as InertiaResponse;
 use Modules\Academic\Models\Course;
+use Modules\Academic\Models\Department;
 use Modules\Academic\Models\Specialization;
 use Modules\Shared\Http\Controllers\Controller;
 
@@ -19,35 +20,56 @@ class CourseController extends Controller
     public function index(Request $request): InertiaResponse
     {
         $filters = $request->validate([
-            'search'        => 'nullable|string|max:255',
+            'search' => 'nullable|string|max:255',
+            'department' => 'nullable|exists:departments,id',
             'specialization' => 'nullable|exists:specializations,id',
-            'units'         => 'nullable|integer|min:1|max:10',
+            'semester_level' => 'nullable|integer|min:1|max:12',
+            'units' => 'nullable|integer|min:1|max:10',
             'has_practical' => 'nullable|boolean',
-            'per_page'      => 'nullable|integer|in:10,25,50,100',
+            'prerequisite_status' => 'nullable|in:any,with,without',
+            'curriculum_status' => 'nullable|in:any,assigned,unassigned',
+            'sort' => 'nullable|in:code,name,units,specializations,created_at',
+            'direction' => 'nullable|in:asc,desc',
+            'per_page' => 'nullable|integer|in:10,25,50,100',
         ]);
 
         $perPage = $filters['per_page'] ?? 25;
+        $sort = $filters['sort'] ?? 'code';
+        $direction = $filters['direction'] ?? 'asc';
 
-        $query = Course::with(['specializations.department', 'prerequisites']);
+        $query = Course::query()
+            ->with(['specializations.department', 'prerequisites'])
+            ->withCount(['specializations', 'prerequisites']);
 
         // Search by name or code
-        if (!empty($filters['search'])) {
-            $search = '%' . addcslashes($filters['search'], '%_') . '%';
+        if (! empty($filters['search'])) {
+            $search = '%'.addcslashes($filters['search'], '%_').'%';
             $query->where(function ($q) use ($search) {
                 $q->where('name', 'like', $search)
                     ->orWhere('code', 'like', $search);
             });
         }
 
-        // Filter by specialization (through the many-to-many pivot)
-        if (!empty($filters['specialization'])) {
+        if (! empty($filters['department']) || ! empty($filters['specialization']) || ! empty($filters['semester_level'])) {
             $query->whereHas('specializations', function ($q) use ($filters) {
-                $q->where('specializations.id', $filters['specialization']);
+                if (! empty($filters['department'])) {
+                    $q->whereHas('department', function ($departmentQuery) use ($filters) {
+                        $departmentQuery->where('departments.id', $filters['department']);
+                    });
+                }
+
+                if (! empty($filters['specialization'])) {
+                    $q->where('specializations.id', $filters['specialization']);
+                }
+
+                if (! empty($filters['semester_level'])) {
+                    $q->where('course_specialization.semester_level', (int) $filters['semester_level']);
+                }
             });
         }
 
         // Filter by units
-        if (!empty($filters['units'])) {
+        if (! empty($filters['units'])) {
             $query->where('units', $filters['units']);
         }
 
@@ -56,20 +78,63 @@ class CourseController extends Controller
             $query->where('has_practical', (bool) $filters['has_practical']);
         }
 
-        $courses = $query->orderBy('code')->paginate($perPage);
+        if (($filters['prerequisite_status'] ?? 'any') === 'with') {
+            $query->has('prerequisites');
+        } elseif (($filters['prerequisite_status'] ?? 'any') === 'without') {
+            $query->doesntHave('prerequisites');
+        }
+
+        if (($filters['curriculum_status'] ?? 'any') === 'assigned') {
+            $query->has('specializations');
+        } elseif (($filters['curriculum_status'] ?? 'any') === 'unassigned') {
+            $query->doesntHave('specializations');
+        }
+
+        match ($sort) {
+            'name' => $query->orderBy('name', $direction),
+            'units' => $query->orderBy('units', $direction)->orderBy('code'),
+            'specializations' => $query->orderBy('specializations_count', $direction)->orderBy('code'),
+            'created_at' => $query->orderBy('created_at', $direction),
+            default => $query->orderBy('code', $direction),
+        };
+
+        $courses = $query
+            ->paginate($perPage)
+            ->withQueryString();
 
         // Transform for frontend (optional)
         $courses->getCollection()->transform(function ($course) {
             return $this->cleanUtf8($course);
         });
 
-        // Get all specializations for filter dropdown
-        $specializations = Specialization::all(['id', 'name']);
+        $departments = Department::query()
+            ->orderBy('name')
+            ->get(['id', 'name']);
+        $specializations = Specialization::query()
+            ->with('department:id,name')
+            ->orderBy('name')
+            ->get(['id', 'department_id', 'name']);
+        $unitOptions = Course::query()
+            ->select('units')
+            ->distinct()
+            ->orderBy('units')
+            ->pluck('units')
+            ->values();
+        $semesterLevels = Course::query()
+            ->join('course_specialization', 'courses.id', '=', 'course_specialization.course_id')
+            ->select('course_specialization.semester_level')
+            ->distinct()
+            ->orderBy('course_specialization.semester_level')
+            ->pluck('course_specialization.semester_level')
+            ->values();
 
         return Inertia::render('Academic/Courses/Index', [
-            'courses'         => $courses,
-            'filters'         => $filters,
+            'courses' => $courses,
+            'filters' => $filters,
+            'departments' => $this->cleanUtf8($departments),
             'specializations' => $this->cleanUtf8($specializations),
+            'unitOptions' => $unitOptions,
+            'semesterLevels' => $semesterLevels,
         ]);
     }
 
@@ -112,7 +177,7 @@ class CourseController extends Controller
         $course->specializations()->sync($syncData);
 
         // Sync prerequisites (many-to-many)
-        if (!empty($validated['prerequisite_ids'])) {
+        if (! empty($validated['prerequisite_ids'])) {
             $course->prerequisites()->sync($validated['prerequisite_ids']);
         }
 
@@ -172,13 +237,13 @@ class CourseController extends Controller
         $course = Course::findOrFail($courseId);
 
         $validated = $request->validate([
-            'code' => 'required|string|max:20|unique:courses,code,' . $courseId,
+            'code' => 'required|string|max:20|unique:courses,code,'.$courseId,
             'name' => 'required|string|max:100',
             'units' => 'required|integer|min:1|max:4',
             'has_practical' => 'required|boolean',
             'description' => 'nullable|string|max:500',
             'prerequisite_ids' => 'nullable|array',
-            'prerequisite_ids.*' => 'exists:courses,id|not_in:' . $courseId,
+            'prerequisite_ids.*' => 'exists:courses,id|not_in:'.$courseId,
             'specializations' => 'required|array|min:1',
             'specializations.*.id' => 'required|exists:specializations,id',
             'specializations.*.semester_level' => 'required|integer|min:1|max:12',

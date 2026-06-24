@@ -5,6 +5,7 @@ namespace Modules\Student\Models;
 use Database\Factories\StudentSemesterSummaryFactory;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Modules\Academic\Models\AcademicSemester;
 
 class StudentSemesterSummary extends Model
 {
@@ -27,6 +28,6 @@ class StudentSemesterSummary extends Model
 
     public function semester()
     {
-        return $this->belongsTo(\Modules\Academic\Models\AcademicSemester::class);
+        return $this->belongsTo(AcademicSemester::class);
     }
 }

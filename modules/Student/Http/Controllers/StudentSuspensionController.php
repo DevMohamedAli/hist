@@ -4,6 +4,7 @@ namespace Modules\Student\Http\Controllers;
 
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Modules\Academic\Models\AcademicSemester;
 use Modules\Shared\Http\Controllers\Controller;
 use Modules\Student\Models\RegistrationSuspension;
 use Modules\Student\Models\Student;
@@ -19,6 +20,12 @@ class StudentSuspensionController extends Controller
         ]);
 
         $student = Student::findOrFail($studentId);
+
+        if ($student->status === 'Graduated') {
+            return redirect()->back()->withErrors([
+                'status' => 'لا يمكن إيقاف القيد للطالب المتخرج.',
+            ]);
+        }
 
         if (RegistrationSuspension::where('student_id', $student->id)->exists()) {
             return redirect()->back()->withErrors([
@@ -42,7 +49,7 @@ class StudentSuspensionController extends Controller
 
         $student->update(['status' => 'Suspended']);
 
-        $semester = \Modules\Academic\Models\AcademicSemester::find($validated['semester_id']);
+        $semester = AcademicSemester::find($validated['semester_id']);
 
         activity()
             ->causedBy($request->user())

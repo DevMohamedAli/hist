@@ -5,6 +5,7 @@ namespace Modules\Academic\Models;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Modules\Student\Models\CourseEnrollment;
+use Modules\Student\Models\Student;
 
 class StudyGroup extends Model
 {
@@ -13,7 +14,7 @@ class StudyGroup extends Model
         'academic_semester_id',
         'semester_level',
         'group_name',
-        'capacity'
+        'capacity',
     ];
 
     /**
@@ -66,7 +67,7 @@ class StudyGroup extends Model
 
     public function students()
     {
-        return $this->belongsToMany(\Modules\Student\Models\Student::class, 'course_enrollments', 'study_group_id', 'student_id')
+        return $this->belongsToMany(Student::class, 'course_enrollments', 'study_group_id', 'student_id')
             ->distinct(); // هذه الكلمة تمنع التكرار من جذوره في الداتابيز
     }
 }
