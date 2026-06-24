@@ -184,9 +184,22 @@
     min-height: clamp(560px, 74vh, 720px);
     background:
         linear-gradient(120deg, rgba(6, 34, 77, 0.96), rgba(11, 59, 120, 0.92)),
-        radial-gradient(circle at 82% 16%, rgba(245, 158, 11, 0.28), transparent 28%),
-        radial-gradient(circle at 18% 82%, rgba(59, 130, 246, 0.22), transparent 30%),
-        linear-gradient(135deg, var(--hero-navy) 0%, var(--hero-navy-2) 56%, var(--hero-blue) 100%);
+        radial-gradient(
+            circle at 82% 16%,
+            rgba(245, 158, 11, 0.28),
+            transparent 28%
+        ),
+        radial-gradient(
+            circle at 18% 82%,
+            rgba(59, 130, 246, 0.22),
+            transparent 30%
+        ),
+        linear-gradient(
+            135deg,
+            var(--hero-navy) 0%,
+            var(--hero-navy-2) 56%,
+            var(--hero-blue) 100%
+        );
 }
 
 .hero-grid {
@@ -194,9 +207,20 @@
     inset: 0;
     opacity: 0.18;
     background-image:
-        linear-gradient(135deg, transparent 45%, rgba(255, 255, 255, 0.11) 46%, transparent 48%),
-        radial-gradient(circle, rgba(255, 255, 255, 0.12) 1px, transparent 1.5px);
-    background-size: 92px 92px, 30px 30px;
+        linear-gradient(
+            135deg,
+            transparent 45%,
+            rgba(255, 255, 255, 0.11) 46%,
+            transparent 48%
+        ),
+        radial-gradient(
+            circle,
+            rgba(255, 255, 255, 0.12) 1px,
+            transparent 1.5px
+        );
+    background-size:
+        92px 92px,
+        30px 30px;
     mask-image: linear-gradient(to bottom, black 0%, transparent 86%);
 }
 
@@ -376,7 +400,7 @@
     inset: 1rem;
     border: 1px solid rgba(255, 255, 255, 0.18);
     border-radius: 1.15rem;
-    content: "";
+    content: '';
     pointer-events: none;
 }
 
@@ -572,7 +596,6 @@
 }
 
 @keyframes heroFloat {
-
     0%,
     100% {
         transform: translate3d(0, 0, 0) rotate(0deg);
@@ -636,7 +659,6 @@
 }
 
 @media (prefers-reduced-motion: reduce) {
-
     .hero-copy,
     .hero-visual,
     .hero-orb,

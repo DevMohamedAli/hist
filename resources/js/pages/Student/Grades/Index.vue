@@ -127,42 +127,72 @@ const gradeWindowAccessible = computed(
 
     <main class="min-h-screen bg-slate-50 p-4 sm:p-6 lg:p-8" dir="rtl">
         <div class="mx-auto max-w-7xl space-y-6">
-            <section class="rounded-lg border border-blue-100 bg-white shadow-sm">
+            <section
+                class="rounded-lg border border-blue-100 bg-white shadow-sm"
+            >
                 <div class="border-t-4 border-blue-800 p-5 sm:p-6">
-                    <div class="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
+                    <div
+                        class="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between"
+                    >
                         <div class="flex items-start gap-3">
-                            <div class="rounded-md bg-blue-50 p-3 text-blue-800">
+                            <div
+                                class="rounded-md bg-blue-50 p-3 text-blue-800"
+                            >
                                 <ClipboardList class="h-6 w-6" />
                             </div>
                             <div>
                                 <p class="text-sm font-bold text-orange-600">
                                     وحدة الرصد
                                 </p>
-                                <h1 class="mt-1 text-2xl font-extrabold text-blue-900">
+                                <h1
+                                    class="mt-1 text-2xl font-extrabold text-blue-900"
+                                >
                                     رصد الدرجات
                                 </h1>
-                                <p class="mt-2 max-w-3xl text-sm leading-7 text-gray-600">
-                                    تم ضبط الرصد ليتبع دورة الفصل: يفتح في فترة الامتحانات النهائية، ثم يغلق بعدها إلا بإذن من مدير النظام.
+                                <p
+                                    class="mt-2 max-w-3xl text-sm leading-7 text-gray-600"
+                                >
+                                    تم ضبط الرصد ليتبع دورة الفصل: يفتح في فترة
+                                    الامتحانات النهائية، ثم يغلق بعدها إلا بإذن
+                                    من مدير النظام.
                                 </p>
                             </div>
                         </div>
 
                         <div class="grid grid-cols-3 gap-3 text-center">
-                            <div class="rounded-md border border-blue-100 bg-blue-50 px-4 py-3">
-                                <p class="text-xs font-bold text-blue-700">الشعب</p>
-                                <p class="mt-1 text-xl font-extrabold text-blue-950">
+                            <div
+                                class="rounded-md border border-blue-100 bg-blue-50 px-4 py-3"
+                            >
+                                <p class="text-xs font-bold text-blue-700">
+                                    الشعب
+                                </p>
+                                <p
+                                    class="mt-1 text-xl font-extrabold text-blue-950"
+                                >
                                     {{ classes.length }}
                                 </p>
                             </div>
-                            <div class="rounded-md border border-green-100 bg-green-50 px-4 py-3">
-                                <p class="text-xs font-bold text-green-700">مرصود</p>
-                                <p class="mt-1 text-xl font-extrabold text-green-950">
+                            <div
+                                class="rounded-md border border-green-100 bg-green-50 px-4 py-3"
+                            >
+                                <p class="text-xs font-bold text-green-700">
+                                    مرصود
+                                </p>
+                                <p
+                                    class="mt-1 text-xl font-extrabold text-green-950"
+                                >
                                     {{ totalGraded }}
                                 </p>
                             </div>
-                            <div class="rounded-md border border-orange-100 bg-orange-50 px-4 py-3">
-                                <p class="text-xs font-bold text-orange-700">قيد الرصد</p>
-                                <p class="mt-1 text-xl font-extrabold text-orange-950">
+                            <div
+                                class="rounded-md border border-orange-100 bg-orange-50 px-4 py-3"
+                            >
+                                <p class="text-xs font-bold text-orange-700">
+                                    قيد الرصد
+                                </p>
+                                <p
+                                    class="mt-1 text-xl font-extrabold text-orange-950"
+                                >
                                     {{ totalPending }}
                                 </p>
                             </div>
@@ -196,37 +226,59 @@ const gradeWindowAccessible = computed(
             </section>
 
             <section class="grid gap-4 sm:grid-cols-3">
-                <div class="rounded-lg border border-gray-200 bg-white p-5 shadow-sm">
+                <div
+                    class="rounded-lg border border-gray-200 bg-white p-5 shadow-sm"
+                >
                     <div class="flex items-center gap-3">
                         <Users class="h-6 w-6 text-blue-800" />
                         <div>
-                            <p class="text-xs font-bold text-gray-500">إجمالي الطلاب</p>
-                            <p class="text-2xl font-extrabold text-gray-950">{{ totalStudents }}</p>
+                            <p class="text-xs font-bold text-gray-500">
+                                إجمالي الطلاب
+                            </p>
+                            <p class="text-2xl font-extrabold text-gray-950">
+                                {{ totalStudents }}
+                            </p>
                         </div>
                     </div>
                 </div>
-                <div class="rounded-lg border border-gray-200 bg-white p-5 shadow-sm">
+                <div
+                    class="rounded-lg border border-gray-200 bg-white p-5 shadow-sm"
+                >
                     <div class="flex items-center gap-3">
                         <CheckCircle2 class="h-6 w-6 text-green-700" />
                         <div>
-                            <p class="text-xs font-bold text-gray-500">درجات محفوظة</p>
-                            <p class="text-2xl font-extrabold text-gray-950">{{ totalGraded }}</p>
+                            <p class="text-xs font-bold text-gray-500">
+                                درجات محفوظة
+                            </p>
+                            <p class="text-2xl font-extrabold text-gray-950">
+                                {{ totalGraded }}
+                            </p>
                         </div>
                     </div>
                 </div>
-                <div class="rounded-lg border border-gray-200 bg-white p-5 shadow-sm">
+                <div
+                    class="rounded-lg border border-gray-200 bg-white p-5 shadow-sm"
+                >
                     <div class="flex items-center gap-3">
                         <BookOpenCheck class="h-6 w-6 text-orange-600" />
                         <div>
-                            <p class="text-xs font-bold text-gray-500">بانتظار الإدخال</p>
-                            <p class="text-2xl font-extrabold text-gray-950">{{ totalPending }}</p>
+                            <p class="text-xs font-bold text-gray-500">
+                                بانتظار الإدخال
+                            </p>
+                            <p class="text-2xl font-extrabold text-gray-950">
+                                {{ totalPending }}
+                            </p>
                         </div>
                     </div>
                 </div>
             </section>
 
-            <section class="rounded-lg border border-gray-200 bg-white shadow-sm">
-                <div class="flex flex-col gap-3 border-b border-gray-100 p-4 sm:flex-row sm:items-center sm:justify-between">
+            <section
+                class="rounded-lg border border-gray-200 bg-white shadow-sm"
+            >
+                <div
+                    class="flex flex-col gap-3 border-b border-gray-100 p-4 sm:flex-row sm:items-center sm:justify-between"
+                >
                     <div>
                         <h2 class="text-lg font-extrabold text-gray-950">
                             الشعب المتاحة
@@ -242,7 +294,9 @@ const gradeWindowAccessible = computed(
                         </p>
                     </div>
                     <div class="relative w-full sm:max-w-sm">
-                        <Search class="pointer-events-none absolute top-1/2 right-3 h-4 w-4 -translate-y-1/2 text-gray-400" />
+                        <Search
+                            class="pointer-events-none absolute top-1/2 right-3 h-4 w-4 -translate-y-1/2 text-gray-400"
+                        />
                         <input
                             v-model="search"
                             type="search"
@@ -261,9 +315,15 @@ const gradeWindowAccessible = computed(
                         <div class="flex items-start justify-between gap-3">
                             <div class="min-w-0">
                                 <div class="flex items-center gap-2">
-                                    <GraduationCap class="h-5 w-5 shrink-0 text-orange-500" />
-                                    <h3 class="truncate text-base font-extrabold text-blue-950">
-                                        {{ item.course?.name ?? 'مقرر غير محدد' }}
+                                    <GraduationCap
+                                        class="h-5 w-5 shrink-0 text-orange-500"
+                                    />
+                                    <h3
+                                        class="truncate text-base font-extrabold text-blue-950"
+                                    >
+                                        {{
+                                            item.course?.name ?? 'مقرر غير محدد'
+                                        }}
                                     </h3>
                                 </div>
                                 <p class="mt-1 text-sm text-gray-500">
@@ -271,7 +331,9 @@ const gradeWindowAccessible = computed(
                                     {{ item.semester?.code ?? '-' }}
                                 </p>
                             </div>
-                            <span class="rounded-full bg-blue-50 px-3 py-1 text-xs font-bold text-blue-800">
+                            <span
+                                class="rounded-full bg-blue-50 px-3 py-1 text-xs font-bold text-blue-800"
+                            >
                                 {{ completionPercent(item) }}%
                             </span>
                         </div>
@@ -280,13 +342,20 @@ const gradeWindowAccessible = computed(
                             <div class="flex justify-between gap-3">
                                 <span>الشعبة</span>
                                 <strong class="text-gray-900">
-                                    {{ item.study_group?.group_name ?? item.group_name ?? '-' }}
+                                    {{
+                                        item.study_group?.group_name ??
+                                        item.group_name ??
+                                        '-'
+                                    }}
                                 </strong>
                             </div>
                             <div class="flex justify-between gap-3">
                                 <span>التخصص</span>
                                 <strong class="text-gray-900">
-                                    {{ item.study_group?.specialization?.name ?? '-' }}
+                                    {{
+                                        item.study_group?.specialization
+                                            ?.name ?? '-'
+                                    }}
                                 </strong>
                             </div>
                             <div class="flex justify-between gap-3">
@@ -305,10 +374,14 @@ const gradeWindowAccessible = computed(
                         </div>
 
                         <div class="mt-4">
-                            <div class="h-2 overflow-hidden rounded-full bg-gray-100">
+                            <div
+                                class="h-2 overflow-hidden rounded-full bg-gray-100"
+                            >
                                 <div
                                     class="h-full rounded-full bg-blue-700"
-                                    :style="{ width: `${completionPercent(item)}%` }"
+                                    :style="{
+                                        width: `${completionPercent(item)}%`,
+                                    }"
                                 />
                             </div>
                             <p class="mt-2 text-xs text-gray-500">

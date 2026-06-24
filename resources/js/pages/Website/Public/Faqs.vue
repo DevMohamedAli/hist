@@ -30,14 +30,19 @@ defineProps<{
                     alt="الأسئلة الشائعة"
                     class="absolute inset-0 h-full w-full object-cover opacity-35"
                 />
-                <div class="absolute inset-0 bg-gradient-to-l from-blue-950 via-blue-950/90 to-blue-900/50" />
+                <div
+                    class="absolute inset-0 bg-gradient-to-l from-blue-950 via-blue-950/90 to-blue-900/50"
+                />
                 <div class="relative mx-auto max-w-4xl px-4 py-20">
-                    <p class="text-sm font-bold text-orange-300">مركز المساعدة</p>
+                    <p class="text-sm font-bold text-orange-300">
+                        مركز المساعدة
+                    </p>
                     <h1 class="mt-3 text-4xl font-extrabold">
                         الأسئلة الشائعة
                     </h1>
                     <p class="mt-4 max-w-2xl leading-8 text-blue-100">
-                        إجابات مختصرة على أكثر الأسئلة تكراراً حول القبول والخدمات الإلكترونية.
+                        إجابات مختصرة على أكثر الأسئلة تكراراً حول القبول
+                        والخدمات الإلكترونية.
                     </p>
                 </div>
             </section>
@@ -49,7 +54,9 @@ defineProps<{
                         :key="faq.id"
                         class="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm"
                     >
-                        <summary class="cursor-pointer text-lg font-extrabold text-blue-950">
+                        <summary
+                            class="cursor-pointer text-lg font-extrabold text-blue-950"
+                        >
                             {{ faq.question }}
                         </summary>
                         <p class="mt-4 leading-8 text-slate-700">

@@ -65,7 +65,9 @@ const submit = () => {
         <main class="min-h-screen bg-gray-50 p-6" dir="rtl">
             <div class="mx-auto max-w-6xl space-y-6">
                 <section class="rounded-xl bg-white p-6 shadow">
-                    <div class="flex flex-wrap items-center justify-between gap-3">
+                    <div
+                        class="flex flex-wrap items-center justify-between gap-3"
+                    >
                         <h1 class="text-2xl font-extrabold text-blue-950">
                             الأسئلة الشائعة
                         </h1>
@@ -99,8 +101,13 @@ const submit = () => {
                                 placeholder="ترتيب العرض"
                                 class="rounded-md border px-3 py-2"
                             />
-                            <label class="flex items-center gap-2 rounded-md border px-3 py-2">
-                                <input v-model="form.is_published" type="checkbox" />
+                            <label
+                                class="flex items-center gap-2 rounded-md border px-3 py-2"
+                            >
+                                <input
+                                    v-model="form.is_published"
+                                    type="checkbox"
+                                />
                                 منشور
                             </label>
                         </div>
@@ -124,9 +131,15 @@ const submit = () => {
                             </tr>
                         </thead>
                         <tbody>
-                            <tr v-for="faq in faqs.data" :key="faq.id" class="border-t">
+                            <tr
+                                v-for="faq in faqs.data"
+                                :key="faq.id"
+                                class="border-t"
+                            >
                                 <td class="py-2">{{ faq.question }}</td>
-                                <td class="py-2">{{ faq.is_published ? 'نعم' : 'لا' }}</td>
+                                <td class="py-2">
+                                    {{ faq.is_published ? 'نعم' : 'لا' }}
+                                </td>
                                 <td class="py-2">{{ faq.sort_order }}</td>
                                 <td class="py-2">
                                     <button

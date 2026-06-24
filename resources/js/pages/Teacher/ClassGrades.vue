@@ -75,24 +75,24 @@ const fieldError = (
 
 const regulationEvaluationFor = (total: number) => {
     if (total >= 85) {
-return 'ممتاز';
-}
+        return 'ممتاز';
+    }
 
     if (total >= 75) {
-return 'جيد جداً';
-}
+        return 'جيد جداً';
+    }
 
     if (total >= 65) {
-return 'جيد';
-}
+        return 'جيد';
+    }
 
     if (total >= 50) {
-return 'مقبول';
-}
+        return 'مقبول';
+    }
 
     if (total >= 35) {
-return 'ضعيف';
-}
+        return 'ضعيف';
+    }
 
     return 'ضعيف جداً';
 };

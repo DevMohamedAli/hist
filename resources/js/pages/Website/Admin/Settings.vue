@@ -11,7 +11,9 @@ const props = defineProps<{
 }>();
 
 const heroImageInput = ref<HTMLInputElement | null>(null);
-const heroImagePreview = ref<string | null>(props.settings.hero_image_url || null);
+const heroImagePreview = ref<string | null>(
+    props.settings.hero_image_url || null,
+);
 
 const form = useForm({
     _method: 'put',
@@ -66,16 +68,22 @@ const submit = () => {
             <div class="mx-auto max-w-5xl">
                 <section class="overflow-hidden rounded-2xl bg-white shadow">
                     <div class="bg-blue-950 px-6 py-7 text-white">
-                        <p class="text-sm font-bold text-orange-300">إعدادات واجهة الموقع</p>
+                        <p class="text-sm font-bold text-orange-300">
+                            إعدادات واجهة الموقع
+                        </p>
                         <h1 class="mt-2 text-3xl font-extrabold">
                             إعدادات الموقع
                         </h1>
                         <p class="mt-2 max-w-3xl leading-7 text-blue-100">
-                            حدّث بيانات التواصل ومحتوى الهيرو الافتراضي، وارفع صورة الهيرو مباشرة من جهازك.
+                            حدّث بيانات التواصل ومحتوى الهيرو الافتراضي، وارفع
+                            صورة الهيرو مباشرة من جهازك.
                         </p>
                     </div>
 
-                    <form class="grid gap-6 p-6 lg:grid-cols-[1fr_360px]" @submit.prevent="submit">
+                    <form
+                        class="grid gap-6 p-6 lg:grid-cols-[1fr_360px]"
+                        @submit.prevent="submit"
+                    >
                         <section class="grid gap-4">
                             <input
                                 v-model="form.site_name"
@@ -123,7 +131,9 @@ const submit = () => {
                             </button>
                         </section>
 
-                        <aside class="rounded-2xl border border-dashed border-slate-300 bg-slate-50 p-5">
+                        <aside
+                            class="rounded-2xl border border-dashed border-slate-300 bg-slate-50 p-5"
+                        >
                             <input
                                 ref="heroImageInput"
                                 type="file"
@@ -131,7 +141,9 @@ const submit = () => {
                                 class="hidden"
                                 @change="onHeroImageChange"
                             />
-                            <div class="flex aspect-video items-center justify-center overflow-hidden rounded-2xl bg-white shadow-sm">
+                            <div
+                                class="flex aspect-video items-center justify-center overflow-hidden rounded-2xl bg-white shadow-sm"
+                            >
                                 <img
                                     v-if="heroImagePreview"
                                     :src="heroImagePreview"
@@ -140,7 +152,9 @@ const submit = () => {
                                 />
                                 <div v-else class="text-center text-slate-400">
                                     <ImagePlus class="mx-auto h-12 w-12" />
-                                    <p class="mt-2 text-sm font-bold">لم يتم اختيار صورة</p>
+                                    <p class="mt-2 text-sm font-bold">
+                                        لم يتم اختيار صورة
+                                    </p>
                                 </div>
                             </div>
                             <button
@@ -160,10 +174,16 @@ const submit = () => {
                                 <X class="h-4 w-4" />
                                 إزالة الصورة المختارة
                             </button>
-                            <p class="mt-3 text-center text-xs leading-6 text-slate-500">
-                                تظهر هذه الصورة في الهيرو عند عدم وجود صورة خبر منشور. الحد الأقصى 4MB.
+                            <p
+                                class="mt-3 text-center text-xs leading-6 text-slate-500"
+                            >
+                                تظهر هذه الصورة في الهيرو عند عدم وجود صورة خبر
+                                منشور. الحد الأقصى 4MB.
                             </p>
-                            <p v-if="form.errors.hero_image" class="mt-2 text-center text-sm font-bold text-red-600">
+                            <p
+                                v-if="form.errors.hero_image"
+                                class="mt-2 text-center text-sm font-bold text-red-600"
+                            >
                                 {{ form.errors.hero_image }}
                             </p>
                         </aside>

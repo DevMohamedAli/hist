@@ -35,8 +35,13 @@ const emit = defineEmits<{
                     <Lock class="h-5 w-5" />
                     التسجيل غير متاح حالياً
                 </DialogTitle>
-                <DialogDescription class="text-right text-sm leading-7 text-slate-600">
-                    {{ registration?.message ?? 'تعذر فتح تسجيل طالب جديد لأن نافذة التسجيل مغلقة حالياً.' }}
+                <DialogDescription
+                    class="text-right text-sm leading-7 text-slate-600"
+                >
+                    {{
+                        registration?.message ??
+                        'تعذر فتح تسجيل طالب جديد لأن نافذة التسجيل مغلقة حالياً.'
+                    }}
                 </DialogDescription>
             </DialogHeader>
 
@@ -45,7 +50,8 @@ const emit = defineEmits<{
                     <AlertTriangle class="mt-0.5 h-5 w-5 text-amber-700" />
                     <div class="space-y-2 text-sm font-bold text-amber-900">
                         <p>
-                            لا يمكن إضافة طالب جديد من الواجهة الآن لأن النظام يقيد هذه العملية بفترة التسجيل المعتمدة فقط.
+                            لا يمكن إضافة طالب جديد من الواجهة الآن لأن النظام
+                            يقيد هذه العملية بفترة التسجيل المعتمدة فقط.
                         </p>
                         <p v-if="registration?.semester?.code">
                             الفصل المرتبط: {{ registration.semester.code }}
@@ -65,13 +71,17 @@ const emit = defineEmits<{
                     </p>
                 </div>
                 <div>
-                    <p class="text-xs font-bold text-slate-500">بداية التسجيل</p>
+                    <p class="text-xs font-bold text-slate-500">
+                        بداية التسجيل
+                    </p>
                     <p class="mt-1 font-extrabold text-slate-900">
                         {{ registration.semester.registration_start ?? '-' }}
                     </p>
                 </div>
                 <div>
-                    <p class="text-xs font-bold text-slate-500">نهاية التسجيل</p>
+                    <p class="text-xs font-bold text-slate-500">
+                        نهاية التسجيل
+                    </p>
                     <p class="mt-1 font-extrabold text-slate-900">
                         {{ registration.semester.registration_end ?? '-' }}
                     </p>

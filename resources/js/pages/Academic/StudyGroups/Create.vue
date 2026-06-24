@@ -58,7 +58,10 @@ const submit = () => {
 <template>
     <Head title="إضافة مجموعة تدريسية" />
 
-    <main class="min-h-screen bg-gray-50 p-4 font-['Cairo'] sm:p-6 lg:p-8" dir="rtl">
+    <main
+        class="min-h-screen bg-gray-50 p-4 font-['Cairo'] sm:p-6 lg:p-8"
+        dir="rtl"
+    >
         <div class="mx-auto max-w-4xl space-y-6">
             <Link
                 href="/academic/study-groups"
@@ -67,25 +70,49 @@ const submit = () => {
                 <ChevronRight class="h-4 w-4" /> العودة إلى المجموعات
             </Link>
 
-            <section class="rounded-xl border-t-4 border-blue-800 bg-white p-6 shadow-md">
-                <h1 class="text-2xl font-extrabold text-blue-800">إضافة مجموعة تدريسية جديدة</h1>
+            <section
+                class="rounded-xl border-t-4 border-blue-800 bg-white p-6 shadow-md"
+            >
+                <h1 class="text-2xl font-extrabold text-blue-800">
+                    إضافة مجموعة تدريسية جديدة
+                </h1>
                 <p class="mt-1 text-sm text-gray-600">
-                    إنشاء مجموعة جديدة متاح فقط للفصل النشط الذي ما يزال ضمن نافذة التسجيل وباقٍ عليه 3 أيام على الأقل قبل الإغلاق.
+                    إنشاء مجموعة جديدة متاح فقط للفصل النشط الذي ما يزال ضمن
+                    نافذة التسجيل وباقٍ عليه 3 أيام على الأقل قبل الإغلاق.
                 </p>
 
-                <div class="mt-4 rounded-lg border border-emerald-200 bg-emerald-50 p-4 text-sm text-emerald-900">
-                    <p class="font-bold">{{ props.creationAvailability.message }}</p>
+                <div
+                    class="mt-4 rounded-lg border border-emerald-200 bg-emerald-50 p-4 text-sm text-emerald-900"
+                >
+                    <p class="font-bold">
+                        {{ props.creationAvailability.message }}
+                    </p>
                     <p v-if="props.creationAvailability.semester" class="mt-1">
-                        الفصل المحدد: {{ props.creationAvailability.semester.code }} |
-                        التسجيل من {{ props.creationAvailability.semester.registration_start ?? '-' }}
-                        إلى {{ props.creationAvailability.semester.registration_end ?? '-' }}
+                        الفصل المحدد:
+                        {{ props.creationAvailability.semester.code }} | التسجيل
+                        من
+                        {{
+                            props.creationAvailability.semester
+                                .registration_start ?? '-'
+                        }}
+                        إلى
+                        {{
+                            props.creationAvailability.semester
+                                .registration_end ?? '-'
+                        }}
                     </p>
                 </div>
 
-                <form class="mt-6 space-y-6 text-gray-900" @submit.prevent="submit">
+                <form
+                    class="mt-6 space-y-6 text-gray-900"
+                    @submit.prevent="submit"
+                >
                     <div class="grid gap-5 md:grid-cols-2">
                         <div>
-                            <label class="block text-sm font-semibold text-gray-700">التخصص *</label>
+                            <label
+                                class="block text-sm font-semibold text-gray-700"
+                                >التخصص *</label
+                            >
                             <select
                                 v-model="form.specialization_id"
                                 required
@@ -103,13 +130,19 @@ const submit = () => {
                                     </template>
                                 </option>
                             </select>
-                            <p v-if="form.errors.specialization_id" class="mt-1 text-sm text-red-600">
+                            <p
+                                v-if="form.errors.specialization_id"
+                                class="mt-1 text-sm text-red-600"
+                            >
                                 {{ form.errors.specialization_id }}
                             </p>
                         </div>
 
                         <div>
-                            <label class="block text-sm font-semibold text-gray-700">الفصل الدراسي *</label>
+                            <label
+                                class="block text-sm font-semibold text-gray-700"
+                                >الفصل الدراسي *</label
+                            >
                             <select
                                 v-model="form.academic_semester_id"
                                 required
@@ -124,15 +157,22 @@ const submit = () => {
                                 </option>
                             </select>
                             <p class="mt-1 text-xs text-gray-500">
-                                تم تقييد الاختيار على الفصل النشط المسموح به فقط.
+                                تم تقييد الاختيار على الفصل النشط المسموح به
+                                فقط.
                             </p>
-                            <p v-if="form.errors.academic_semester_id" class="mt-1 text-sm text-red-600">
+                            <p
+                                v-if="form.errors.academic_semester_id"
+                                class="mt-1 text-sm text-red-600"
+                            >
                                 {{ form.errors.academic_semester_id }}
                             </p>
                         </div>
 
                         <div>
-                            <label class="block text-sm font-semibold text-gray-700">المستوى (الدفعة) *</label>
+                            <label
+                                class="block text-sm font-semibold text-gray-700"
+                                >المستوى (الدفعة) *</label
+                            >
                             <input
                                 v-model.number="form.semester_level"
                                 type="number"
@@ -141,13 +181,19 @@ const submit = () => {
                                 required
                                 class="mt-1 block w-full rounded-lg border border-gray-300 px-3 py-2 text-start shadow-sm focus:border-blue-800 focus:ring-2 focus:ring-blue-800/20"
                             />
-                            <p v-if="form.errors.semester_level" class="mt-1 text-sm text-red-600">
+                            <p
+                                v-if="form.errors.semester_level"
+                                class="mt-1 text-sm text-red-600"
+                            >
                                 {{ form.errors.semester_level }}
                             </p>
                         </div>
 
                         <div>
-                            <label class="block text-sm font-semibold text-gray-700">اسم المجموعة (مثال: أ، ب) *</label>
+                            <label
+                                class="block text-sm font-semibold text-gray-700"
+                                >اسم المجموعة (مثال: أ، ب) *</label
+                            >
                             <input
                                 v-model="form.group_name"
                                 type="text"
@@ -155,13 +201,19 @@ const submit = () => {
                                 required
                                 class="mt-1 block w-full rounded-lg border border-gray-300 px-3 py-2 text-start shadow-sm focus:border-blue-800 focus:ring-2 focus:ring-blue-800/20"
                             />
-                            <p v-if="form.errors.group_name" class="mt-1 text-sm text-red-600">
+                            <p
+                                v-if="form.errors.group_name"
+                                class="mt-1 text-sm text-red-600"
+                            >
                                 {{ form.errors.group_name }}
                             </p>
                         </div>
 
                         <div>
-                            <label class="block text-sm font-semibold text-gray-700">السعة الاستيعابية</label>
+                            <label
+                                class="block text-sm font-semibold text-gray-700"
+                                >السعة الاستيعابية</label
+                            >
                             <input
                                 v-model.number="form.capacity"
                                 type="number"
@@ -169,7 +221,10 @@ const submit = () => {
                                 max="200"
                                 class="mt-1 block w-full rounded-lg border border-gray-300 px-3 py-2 text-start shadow-sm focus:border-blue-800 focus:ring-2 focus:ring-blue-800/20"
                             />
-                            <p v-if="form.errors.capacity" class="mt-1 text-sm text-red-600">
+                            <p
+                                v-if="form.errors.capacity"
+                                class="mt-1 text-sm text-red-600"
+                            >
                                 {{ form.errors.capacity }}
                             </p>
                         </div>

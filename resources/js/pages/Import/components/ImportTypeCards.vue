@@ -1,5 +1,11 @@
 <script setup lang="ts">
-import { BookOpen, CalendarDays, FileSpreadsheet, GraduationCap, Users } from 'lucide-vue-next';
+import {
+    BookOpen,
+    CalendarDays,
+    FileSpreadsheet,
+    GraduationCap,
+    Users,
+} from 'lucide-vue-next';
 import type { Component } from 'vue';
 
 interface SupportedType {

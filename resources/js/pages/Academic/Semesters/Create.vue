@@ -107,14 +107,16 @@ const submit = () => form.post('/academic/semesters');
                 إضافة فصل دراسي
             </h1>
             <p class="mt-2 text-sm text-gray-600">
-                تظهر هنا فقط الفصول الرسمية غير الموجودة فعلاً في قاعدة البيانات.
+                تظهر هنا فقط الفصول الرسمية غير الموجودة فعلاً في قاعدة
+                البيانات.
             </p>
 
             <div
                 v-if="props.creationOptions.availableCombinations.length === 0"
                 class="mt-6 rounded-lg border border-amber-200 bg-amber-50 p-4 text-sm font-bold text-amber-900"
             >
-                لا توجد حالياً تركيبات جديدة متاحة للربيع أو الخريف ضمن نطاق السنوات المقترح.
+                لا توجد حالياً تركيبات جديدة متاحة للربيع أو الخريف ضمن نطاق
+                السنوات المقترح.
             </div>
 
             <form
@@ -136,7 +138,8 @@ const submit = () => form.post('/academic/semesters');
                         required
                     >
                         <option
-                            v-for="option in props.creationOptions.availableCombinations"
+                            v-for="option in props.creationOptions
+                                .availableCombinations"
                             :key="`${option.season}-${option.year}`"
                             :value="`${option.season}-${option.year}`"
                         >

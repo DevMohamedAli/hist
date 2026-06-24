@@ -36,8 +36,13 @@ const emit = defineEmits<{
                     <Lock class="h-5 w-5" />
                     إنشاء مجموعة جديدة غير متاح حالياً
                 </DialogTitle>
-                <DialogDescription class="text-right text-sm leading-7 text-slate-600">
-                    {{ availability?.message ?? 'تعذر فتح إنشاء مجموعة جديدة لأن شروط الفصل والتسجيل غير متحققة حالياً.' }}
+                <DialogDescription
+                    class="text-right text-sm leading-7 text-slate-600"
+                >
+                    {{
+                        availability?.message ??
+                        'تعذر فتح إنشاء مجموعة جديدة لأن شروط الفصل والتسجيل غير متحققة حالياً.'
+                    }}
                 </DialogDescription>
             </DialogHeader>
 
@@ -45,10 +50,21 @@ const emit = defineEmits<{
                 <div class="flex items-start gap-3">
                     <AlertTriangle class="mt-0.5 h-5 w-5 text-amber-700" />
                     <div class="space-y-2 text-sm font-bold text-amber-900">
-                        <p>يشترط النظام وجود فصل نشط وأن تكون نافذة التسجيل مفتوحة مع بقاء 3 أيام على الأقل قبل الإغلاق.</p>
-                        <p v-if="availability?.semester?.code">الفصل المرتبط: {{ availability.semester.code }}</p>
-                        <p v-if="availability?.days_remaining !== null && availability?.days_remaining !== undefined">
-                            الأيام المتبقية حتى إغلاق التسجيل: {{ availability.days_remaining }}
+                        <p>
+                            يشترط النظام وجود فصل نشط وأن تكون نافذة التسجيل
+                            مفتوحة مع بقاء 3 أيام على الأقل قبل الإغلاق.
+                        </p>
+                        <p v-if="availability?.semester?.code">
+                            الفصل المرتبط: {{ availability.semester.code }}
+                        </p>
+                        <p
+                            v-if="
+                                availability?.days_remaining !== null &&
+                                availability?.days_remaining !== undefined
+                            "
+                        >
+                            الأيام المتبقية حتى إغلاق التسجيل:
+                            {{ availability.days_remaining }}
                         </p>
                     </div>
                 </div>
@@ -65,13 +81,17 @@ const emit = defineEmits<{
                     </p>
                 </div>
                 <div>
-                    <p class="text-xs font-bold text-slate-500">بداية التسجيل</p>
+                    <p class="text-xs font-bold text-slate-500">
+                        بداية التسجيل
+                    </p>
                     <p class="mt-1 font-extrabold text-slate-900">
                         {{ availability.semester.registration_start ?? '-' }}
                     </p>
                 </div>
                 <div>
-                    <p class="text-xs font-bold text-slate-500">نهاية التسجيل</p>
+                    <p class="text-xs font-bold text-slate-500">
+                        نهاية التسجيل
+                    </p>
                     <p class="mt-1 font-extrabold text-slate-900">
                         {{ availability.semester.registration_end ?? '-' }}
                     </p>

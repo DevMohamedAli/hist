@@ -84,7 +84,9 @@ const onImageChange = (event: Event) => {
     const file = target.files?.[0] ?? null;
 
     form.image = file;
-    imagePreview.value = file ? URL.createObjectURL(file) : savedImagePreview.value;
+    imagePreview.value = file
+        ? URL.createObjectURL(file)
+        : savedImagePreview.value;
 };
 
 const clearSelectedImage = () => {
@@ -122,19 +124,29 @@ const submit = () => {
             <div class="mx-auto max-w-6xl space-y-6">
                 <section class="overflow-hidden rounded-2xl bg-white shadow">
                     <div class="bg-blue-950 px-6 py-7 text-white">
-                        <p class="text-sm font-bold text-orange-300">إدارة واجهة الموقع</p>
+                        <p class="text-sm font-bold text-orange-300">
+                            إدارة واجهة الموقع
+                        </p>
                         <h1 class="mt-2 text-3xl font-extrabold">
                             السلايدر والبنرات
                         </h1>
                         <p class="mt-2 max-w-3xl leading-7 text-blue-100">
-                            ارفع صورة الشريحة مباشرة من جهازك، وأضف العنوان والرابط وترتيب الظهور في الصفحة الرئيسية.
+                            ارفع صورة الشريحة مباشرة من جهازك، وأضف العنوان
+                            والرابط وترتيب الظهور في الصفحة الرئيسية.
                         </p>
                     </div>
 
-                    <form class="grid gap-6 p-6 lg:grid-cols-[1fr_360px]" @submit.prevent="submit">
+                    <form
+                        class="grid gap-6 p-6 lg:grid-cols-[1fr_360px]"
+                        @submit.prevent="submit"
+                    >
                         <section class="grid gap-4">
-                            <div class="flex flex-wrap items-center justify-between gap-3">
-                                <h2 class="text-xl font-extrabold text-blue-950">
+                            <div
+                                class="flex flex-wrap items-center justify-between gap-3"
+                            >
+                                <h2
+                                    class="text-xl font-extrabold text-blue-950"
+                                >
                                     {{ formTitle }}
                                 </h2>
                                 <button
@@ -177,8 +189,13 @@ const submit = () => {
                                     class="rounded-xl border border-slate-300 px-4 py-3"
                                 />
                             </div>
-                            <label class="flex items-center gap-2 rounded-xl border border-slate-300 px-4 py-3">
-                                <input v-model="form.is_active" type="checkbox" />
+                            <label
+                                class="flex items-center gap-2 rounded-xl border border-slate-300 px-4 py-3"
+                            >
+                                <input
+                                    v-model="form.is_active"
+                                    type="checkbox"
+                                />
                                 نشط ويظهر في الموقع
                             </label>
                             <button
@@ -189,7 +206,9 @@ const submit = () => {
                             </button>
                         </section>
 
-                        <aside class="rounded-2xl border border-dashed border-slate-300 bg-slate-50 p-5">
+                        <aside
+                            class="rounded-2xl border border-dashed border-slate-300 bg-slate-50 p-5"
+                        >
                             <input
                                 ref="imageInput"
                                 type="file"
@@ -208,7 +227,9 @@ const submit = () => {
                                 />
                                 <div v-else class="text-center text-slate-400">
                                     <ImagePlus class="mx-auto h-12 w-12" />
-                                    <p class="mt-2 text-sm font-bold">لم يتم اختيار صورة</p>
+                                    <p class="mt-2 text-sm font-bold">
+                                        لم يتم اختيار صورة
+                                    </p>
                                 </div>
                             </div>
                             <button
@@ -228,10 +249,16 @@ const submit = () => {
                                 <X class="h-4 w-4" />
                                 إزالة الصورة المختارة
                             </button>
-                            <p class="mt-3 text-center text-xs leading-6 text-slate-500">
-                                الصيغ المدعومة: JPG, PNG, WEBP — الحد الأقصى 4MB.
+                            <p
+                                class="mt-3 text-center text-xs leading-6 text-slate-500"
+                            >
+                                الصيغ المدعومة: JPG, PNG, WEBP — الحد الأقصى
+                                4MB.
                             </p>
-                            <p v-if="form.errors.image" class="mt-2 text-center text-sm font-bold text-red-600">
+                            <p
+                                v-if="form.errors.image"
+                                class="mt-2 text-center text-sm font-bold text-red-600"
+                            >
                                 {{ form.errors.image }}
                             </p>
                         </aside>
@@ -252,11 +279,22 @@ const submit = () => {
                                 class="h-44 w-full object-cover"
                             />
                             <div class="p-5">
-                                <div class="flex items-start justify-between gap-3">
+                                <div
+                                    class="flex items-start justify-between gap-3"
+                                >
                                     <div>
-                                        <h3 class="font-extrabold text-blue-950">{{ banner.title }}</h3>
+                                        <h3
+                                            class="font-extrabold text-blue-950"
+                                        >
+                                            {{ banner.title }}
+                                        </h3>
                                         <p class="mt-1 text-sm text-slate-500">
-                                            {{ banner.is_active ? 'نشط' : 'غير نشط' }} — ترتيب {{ banner.sort_order }}
+                                            {{
+                                                banner.is_active
+                                                    ? 'نشط'
+                                                    : 'غير نشط'
+                                            }}
+                                            — ترتيب {{ banner.sort_order }}
                                         </p>
                                     </div>
                                     <button
@@ -267,7 +305,10 @@ const submit = () => {
                                         تعديل
                                     </button>
                                 </div>
-                                <p v-if="banner.subtitle" class="mt-3 text-sm leading-6 text-slate-600">
+                                <p
+                                    v-if="banner.subtitle"
+                                    class="mt-3 text-sm leading-6 text-slate-600"
+                                >
                                     {{ banner.subtitle }}
                                 </p>
                             </div>

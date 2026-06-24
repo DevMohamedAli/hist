@@ -40,17 +40,25 @@ defineProps<{
                         :key="submission.id"
                         class="rounded-xl border border-slate-200 bg-white p-5 shadow-sm"
                     >
-                        <div class="flex flex-wrap items-start justify-between gap-3">
+                        <div
+                            class="flex flex-wrap items-start justify-between gap-3"
+                        >
                             <div>
                                 <h2 class="font-extrabold text-blue-950">
                                     {{ submission.subject || 'بدون موضوع' }}
                                 </h2>
                                 <p class="mt-1 text-sm text-slate-500">
                                     {{ submission.name }} —
-                                    {{ submission.email || submission.phone || 'لا توجد بيانات اتصال' }}
+                                    {{
+                                        submission.email ||
+                                        submission.phone ||
+                                        'لا توجد بيانات اتصال'
+                                    }}
                                 </p>
                             </div>
-                            <span class="rounded-full bg-slate-100 px-3 py-1 text-xs font-bold text-slate-700">
+                            <span
+                                class="rounded-full bg-slate-100 px-3 py-1 text-xs font-bold text-slate-700"
+                            >
                                 {{ submission.status }}
                             </span>
                         </div>

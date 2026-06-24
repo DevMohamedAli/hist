@@ -363,7 +363,8 @@ const navigation: NavSection[] = [
                 href: '/admin/website/contact-submissions',
                 icon: Users,
                 activePrefixes: ['/admin/website/contact-submissions'],
-                visible: () => hasPermission('website.contact-submissions.view'),
+                visible: () =>
+                    hasPermission('website.contact-submissions.view'),
             },
         ],
     },
@@ -538,7 +539,10 @@ onUnmounted(() => {
                     </h2>
 
                     <div class="space-y-1">
-                        <template v-for="item in section.items" :key="item.title">
+                        <template
+                            v-for="item in section.items"
+                            :key="item.title"
+                        >
                             <button
                                 v-if="
                                     item.href === '/students/create' &&
@@ -546,7 +550,9 @@ onUnmounted(() => {
                                 "
                                 type="button"
                                 class="group flex w-full items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-bold text-blue-100/75 transition hover:bg-white/10"
-                                :title="desktopCollapsed ? item.title : undefined"
+                                :title="
+                                    desktopCollapsed ? item.title : undefined
+                                "
                                 @click="openRegistrationDialog"
                             >
                                 <component
@@ -569,7 +575,9 @@ onUnmounted(() => {
                                         ? 'bg-orange-500 text-white shadow-md'
                                         : 'text-blue-50 hover:bg-white/10'
                                 "
-                                :title="desktopCollapsed ? item.title : undefined"
+                                :title="
+                                    desktopCollapsed ? item.title : undefined
+                                "
                                 @click="closeSidebar"
                             >
                                 <component

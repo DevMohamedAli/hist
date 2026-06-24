@@ -203,7 +203,9 @@ const statusConfig: Record<string, { label: string; classes: string }> = {
                     class="grid grid-cols-1 gap-4 md:grid-cols-3 lg:grid-cols-4"
                 >
                     <div>
-                        <label class="block text-sm font-semibold text-gray-700">
+                        <label
+                            class="block text-sm font-semibold text-gray-700"
+                        >
                             البحث
                         </label>
                         <div class="relative mt-1">
@@ -220,7 +222,9 @@ const statusConfig: Record<string, { label: string; classes: string }> = {
                         </div>
                     </div>
                     <div>
-                        <label class="block text-sm font-semibold text-gray-700">
+                        <label
+                            class="block text-sm font-semibold text-gray-700"
+                        >
                             الحالة
                         </label>
                         <select
@@ -236,7 +240,9 @@ const statusConfig: Record<string, { label: string; classes: string }> = {
                         </select>
                     </div>
                     <div>
-                        <label class="block text-sm font-semibold text-gray-700">
+                        <label
+                            class="block text-sm font-semibold text-gray-700"
+                        >
                             التخصص
                         </label>
                         <select
@@ -310,10 +316,14 @@ const statusConfig: Record<string, { label: string; classes: string }> = {
                                 :key="student.id"
                                 class="transition hover:bg-orange-50/60"
                             >
-                                <td class="px-6 py-4 font-mono font-bold text-blue-800">
+                                <td
+                                    class="px-6 py-4 font-mono font-bold text-blue-800"
+                                >
                                     {{ student.registration_number }}
                                 </td>
-                                <td class="px-6 py-4 font-semibold text-gray-900">
+                                <td
+                                    class="px-6 py-4 font-semibold text-gray-900"
+                                >
                                     {{ student.full_name }}
                                 </td>
                                 <td class="px-6 py-4">
@@ -325,18 +335,33 @@ const statusConfig: Record<string, { label: string; classes: string }> = {
                                                 : 'bg-pink-50 text-pink-700 ring-pink-600/20'
                                         "
                                     >
-                                        {{ student.gender === 'Male' ? 'ذكر' : 'أنثى' }}
+                                        {{
+                                            student.gender === 'Male'
+                                                ? 'ذكر'
+                                                : 'أنثى'
+                                        }}
                                     </span>
                                 </td>
                                 <td class="px-6 py-4 text-gray-700">
                                     <div class="flex items-center gap-1.5">
-                                        <BookOpen class="h-4 w-4 text-gray-400" />
-                                        {{ student.current_specialization?.name ?? '—' }}
+                                        <BookOpen
+                                            class="h-4 w-4 text-gray-400"
+                                        />
+                                        {{
+                                            student.current_specialization
+                                                ?.name ?? '—'
+                                        }}
                                         <span
-                                            v-if="student.current_specialization?.department"
+                                            v-if="
+                                                student.current_specialization
+                                                    ?.department
+                                            "
                                             class="text-xs text-gray-500"
                                         >
-                                            ({{ student.current_specialization.department.name }})
+                                            ({{
+                                                student.current_specialization
+                                                    .department.name
+                                            }})
                                         </span>
                                     </div>
                                 </td>
@@ -344,18 +369,28 @@ const statusConfig: Record<string, { label: string; classes: string }> = {
                                     <span
                                         class="inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-semibold ring-1 ring-inset"
                                         :class="
-                                            statusConfig[student.status]?.classes ||
+                                            statusConfig[student.status]
+                                                ?.classes ||
                                             'bg-gray-50 text-gray-700 ring-gray-600/20'
                                         "
                                     >
-                                        {{ statusConfig[student.status]?.label || student.status }}
+                                        {{
+                                            statusConfig[student.status]
+                                                ?.label || student.status
+                                        }}
                                     </span>
                                 </td>
                                 <td class="px-6 py-4 text-gray-700">
-                                    {{ formatDisplayDate(student.admission_date) }}
+                                    {{
+                                        formatDisplayDate(
+                                            student.admission_date,
+                                        )
+                                    }}
                                 </td>
                                 <td class="px-6 py-4 text-center">
-                                    <div class="flex items-center justify-center gap-2">
+                                    <div
+                                        class="flex items-center justify-center gap-2"
+                                    >
                                         <Link
                                             :href="`/students/${student.id}`"
                                             class="inline-flex items-center gap-1 rounded bg-gray-50 px-2 py-1 text-xs font-medium text-gray-700 transition hover:bg-gray-200"
@@ -387,7 +422,9 @@ const statusConfig: Record<string, { label: string; classes: string }> = {
                                     class="px-6 py-10 text-center text-gray-500"
                                 >
                                     <div class="flex flex-col items-center">
-                                        <Users class="mb-3 h-12 w-12 text-gray-300" />
+                                        <Users
+                                            class="mb-3 h-12 w-12 text-gray-300"
+                                        />
                                         <p class="font-semibold">
                                             لا يوجد طلاب مطابقون للبحث
                                         </p>

@@ -102,8 +102,10 @@ const props = withDefaults(
 );
 
 const canManageAcademicActions = () => props.student.status === 'Active';
-const canTransfer = () => canManageAcademicActions() && props.transferEligibility.can_transfer;
-const canEnroll = () => canManageAcademicActions() && props.enrollmentAvailability.is_open;
+const canTransfer = () =>
+    canManageAcademicActions() && props.transferEligibility.can_transfer;
+const canEnroll = () =>
+    canManageAcademicActions() && props.enrollmentAvailability.is_open;
 
 // ---------- Modals state ----------
 const showSuspendModal = ref(false);
@@ -279,7 +281,8 @@ const gradeToColor = (evaluation: string | null) => {
                         v-else
                         class="border border-blue-200 bg-blue-50 px-4 py-2 text-sm font-bold text-blue-900"
                     >
-                        الطالب متخرج، لذلك لا تتاح إجراءات إيقاف القيد أو انتقال التخصص أو تسجيل المقررات.
+                        الطالب متخرج، لذلك لا تتاح إجراءات إيقاف القيد أو انتقال
+                        التخصص أو تسجيل المقررات.
                     </div>
                 </div>
             </section>

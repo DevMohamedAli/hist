@@ -17,19 +17,22 @@ defineProps<{
 const cards = [
     {
         title: 'عن المعهد',
-        description: 'تحديث صفحة التعريف بالمعهد، النص المنسق، صورة الصفحة، وبيانات SEO.',
+        description:
+            'تحديث صفحة التعريف بالمعهد، النص المنسق، صورة الصفحة، وبيانات SEO.',
         href: '/admin/website/pages',
         stat: 'pages',
     },
     {
         title: 'الأخبار والإعلانات',
-        description: 'إضافة الأخبار، الإعلانات، والفعاليات وتحديث صورها وشريط ظهورها في الصفحة الرئيسية.',
+        description:
+            'إضافة الأخبار، الإعلانات، والفعاليات وتحديث صورها وشريط ظهورها في الصفحة الرئيسية.',
         href: '/admin/website/posts',
         stat: 'posts',
     },
     {
         title: 'السلايدر والبنرات',
-        description: 'إدارة شرائح الصفحة الرئيسية وروابطها وصورها وترتيب ظهورها.',
+        description:
+            'إدارة شرائح الصفحة الرئيسية وروابطها وصورها وترتيب ظهورها.',
         href: '/admin/website/banners',
         stat: 'banners',
     },
@@ -41,7 +44,8 @@ const cards = [
     },
     {
         title: 'إعدادات الموقع',
-        description: 'تحديث اسم الموقع، وصفه، بيانات التواصل، وصورة الهيرو الافتراضية.',
+        description:
+            'تحديث اسم الموقع، وصفه، بيانات التواصل، وصورة الهيرو الافتراضية.',
         href: '/admin/website/settings',
         stat: null,
     },
@@ -60,12 +64,16 @@ const cards = [
         <main class="min-h-screen bg-slate-50 p-6" dir="rtl">
             <div class="mx-auto max-w-6xl space-y-6">
                 <section class="rounded-3xl bg-blue-950 p-8 text-white shadow">
-                    <p class="text-sm font-bold text-orange-300">لوحة إدارة الموقع</p>
+                    <p class="text-sm font-bold text-orange-300">
+                        لوحة إدارة الموقع
+                    </p>
                     <h1 class="mt-2 text-3xl font-extrabold">
                         إدارة محتوى واجهة الموقع
                     </h1>
                     <p class="mt-3 max-w-3xl leading-8 text-blue-100">
-                        من هنا يستطيع مسؤول الموقع إدارة صفحة عن المعهد، الأخبار، السلايدر، الأسئلة الشائعة، الإعدادات، ورسائل التواصل.
+                        من هنا يستطيع مسؤول الموقع إدارة صفحة عن المعهد،
+                        الأخبار، السلايدر، الأسئلة الشائعة، الإعدادات، ورسائل
+                        التواصل.
                     </p>
                 </section>
 

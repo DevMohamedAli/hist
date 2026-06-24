@@ -75,8 +75,9 @@ const form = useForm({
 const selectedGroup = ref<StudyGroup | null>(null);
 const assignedGroup = computed(
     () =>
-        props.studyGroups.find((group) => group.id === props.assignedStudyGroupId) ??
-        null,
+        props.studyGroups.find(
+            (group) => group.id === props.assignedStudyGroupId,
+        ) ?? null,
 );
 const isGroupLocked = computed(() => !!props.assignedStudyGroupId);
 
@@ -178,12 +179,15 @@ const prerequisiteMessage = (course: Course) => {
                 العودة إلى ملف الطالب الأكاديمي
             </Link>
 
-            <section class="rounded-lg border-t-4 border-blue-800 bg-white p-6 shadow-md">
+            <section
+                class="rounded-lg border-t-4 border-blue-800 bg-white p-6 shadow-md"
+            >
                 <h1 class="text-2xl font-extrabold text-blue-800">
                     تنزيل المقررات وتجديد القيد للفصل الدراسي
                 </h1>
                 <p class="mt-1 text-sm text-gray-600">
-                    تم تحويل الصفحة إلى مسار عمل أوضح: ربط بالمجموعة أولاً، ثم تنزيل المواد الخاصة بها.
+                    تم تحويل الصفحة إلى مسار عمل أوضح: ربط بالمجموعة أولاً، ثم
+                    تنزيل المواد الخاصة بها.
                 </p>
             </section>
 
@@ -226,14 +230,20 @@ const prerequisiteMessage = (course: Course) => {
                     </div>
                     <div
                         class="rounded-lg p-4"
-                        :class="student.has_warning ? 'bg-red-50' : 'bg-green-50'"
+                        :class="
+                            student.has_warning ? 'bg-red-50' : 'bg-green-50'
+                        "
                     >
                         <p class="text-xs font-medium text-gray-500">
                             الإنذارات الأكاديمية
                         </p>
                         <p
                             class="mt-1 font-bold"
-                            :class="student.has_warning ? 'text-red-700' : 'text-green-700'"
+                            :class="
+                                student.has_warning
+                                    ? 'text-red-700'
+                                    : 'text-green-700'
+                            "
                         >
                             {{
                                 student.has_warning
@@ -255,7 +265,9 @@ const prerequisiteMessage = (course: Course) => {
 
             <form @submit.prevent="submit" class="space-y-6">
                 <section class="rounded-lg bg-white p-6 shadow-md">
-                    <h2 class="mb-4 flex items-center gap-2 text-xl font-bold text-blue-800">
+                    <h2
+                        class="mb-4 flex items-center gap-2 text-xl font-bold text-blue-800"
+                    >
                         1. المجموعة الدراسية المستهدفة
                     </h2>
                     <div class="max-w-md">
@@ -295,7 +307,8 @@ const prerequisiteMessage = (course: Course) => {
                             v-if="isGroupLocked"
                             class="mt-2 text-xs font-bold text-gray-500"
                         >
-                            تم قفل اختيار المجموعة لأن الطالب أُسند إليها تلقائياً عند التفعيل.
+                            تم قفل اختيار المجموعة لأن الطالب أُسند إليها
+                            تلقائياً عند التفعيل.
                         </p>
                     </div>
                 </section>
@@ -304,17 +317,23 @@ const prerequisiteMessage = (course: Course) => {
                     v-if="selectedGroup"
                     class="space-y-6 rounded-lg bg-white p-6 shadow-md"
                 >
-                    <h2 class="mb-4 flex items-center gap-2 text-xl font-bold text-blue-800">
+                    <h2
+                        class="mb-4 flex items-center gap-2 text-xl font-bold text-blue-800"
+                    >
                         2. تحديد المقررات وتنزيل المواد
                     </h2>
 
                     <div>
-                        <h3 class="flex items-center gap-2 text-lg font-bold text-blue-800">
+                        <h3
+                            class="flex items-center gap-2 text-lg font-bold text-blue-800"
+                        >
                             <Users class="h-5 w-5" />
                             مقررات المجموعة {{ selectedGroup.group_name }} -
                             المستوى {{ selectedGroup.semester_level }}
                         </h3>
-                        <div class="mt-3 divide-y divide-gray-100 border-t border-b">
+                        <div
+                            class="mt-3 divide-y divide-gray-100 border-t border-b"
+                        >
                             <div
                                 v-for="course in selectedGroup.courses"
                                 :key="course.id"
@@ -323,20 +342,30 @@ const prerequisiteMessage = (course: Course) => {
                             >
                                 <label
                                     class="flex items-start gap-3 text-sm font-semibold"
-                                    :class="course.is_eligible ? 'cursor-pointer' : 'cursor-not-allowed'"
+                                    :class="
+                                        course.is_eligible
+                                            ? 'cursor-pointer'
+                                            : 'cursor-not-allowed'
+                                    "
                                 >
                                     <input
                                         v-model="form.selected_course_ids"
                                         type="checkbox"
                                         :value="course.id"
                                         :disabled="!course.is_eligible"
-                                        :title="!course.is_eligible ? prerequisiteMessage(course) : undefined"
+                                        :title="
+                                            !course.is_eligible
+                                                ? prerequisiteMessage(course)
+                                                : undefined
+                                        "
                                         class="h-4 w-4 rounded border-gray-300 text-blue-800 focus:ring-blue-800"
                                     />
                                     <span class="space-y-1">
                                         <span>
                                             {{ course.name }}
-                                            <span class="font-mono text-xs text-gray-500">
+                                            <span
+                                                class="font-mono text-xs text-gray-500"
+                                            >
                                                 ({{ course.code }})
                                             </span>
                                         </span>
@@ -348,7 +377,9 @@ const prerequisiteMessage = (course: Course) => {
                                         </span>
                                     </span>
                                 </label>
-                                <span class="rounded bg-gray-100 px-2 py-1 text-xs font-bold text-gray-700">
+                                <span
+                                    class="rounded bg-gray-100 px-2 py-1 text-xs font-bold text-gray-700"
+                                >
                                     {{ course.units }} وحدات
                                 </span>
                             </div>
@@ -362,17 +393,23 @@ const prerequisiteMessage = (course: Course) => {
                     </div>
 
                     <div v-if="carriedEnrollments.length > 0">
-                        <h3 class="flex items-center gap-2 text-lg font-bold text-orange-600">
+                        <h3
+                            class="flex items-center gap-2 text-lg font-bold text-orange-600"
+                        >
                             <AlertTriangle class="h-5 w-5" />
                             المقررات المحمولة المتاحة للإعادة
                         </h3>
-                        <div class="mt-3 divide-y divide-gray-100 border-t border-b bg-orange-50/30">
+                        <div
+                            class="mt-3 divide-y divide-gray-100 border-t border-b bg-orange-50/30"
+                        >
                             <div
                                 v-for="carried in carriedEnrollments"
                                 :key="carried.id"
                                 class="flex items-center justify-between px-3 py-3"
                             >
-                                <label class="flex cursor-pointer items-center gap-3 text-sm font-semibold text-orange-900">
+                                <label
+                                    class="flex cursor-pointer items-center gap-3 text-sm font-semibold text-orange-900"
+                                >
                                     <input
                                         v-model="form.selected_carried_ids"
                                         type="checkbox"
@@ -381,12 +418,16 @@ const prerequisiteMessage = (course: Course) => {
                                     />
                                     <span>
                                         {{ carried.name }}
-                                        <span class="font-mono text-xs text-orange-600">
+                                        <span
+                                            class="font-mono text-xs text-orange-600"
+                                        >
                                             ({{ carried.code }})
                                         </span>
                                     </span>
                                 </label>
-                                <span class="rounded bg-orange-100 px-2 py-1 text-xs font-bold text-orange-800">
+                                <span
+                                    class="rounded bg-orange-100 px-2 py-1 text-xs font-bold text-orange-800"
+                                >
                                     {{ carried.units }} وحدات (محمّلة)
                                 </span>
                             </div>
@@ -401,19 +442,29 @@ const prerequisiteMessage = (course: Course) => {
                                 : 'border-red-600 bg-red-50'
                         "
                     >
-                        <div class="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+                        <div
+                            class="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between"
+                        >
                             <div>
-                                <span class="block text-lg font-bold text-gray-900">
+                                <span
+                                    class="block text-lg font-bold text-gray-900"
+                                >
                                     إجمالي الوحدات المحددة للتنزيل:
                                 </span>
-                                <span class="mt-1 block text-xs font-semibold text-gray-500">
+                                <span
+                                    class="mt-1 block text-xs font-semibold text-gray-500"
+                                >
                                     الحد المسموح به: من {{ limits.min }} إلى
                                     {{ limits.max }} وحدة
                                 </span>
                             </div>
                             <span
                                 class="text-3xl font-extrabold"
-                                :class="isSelectionValid ? 'text-blue-800' : 'text-red-700'"
+                                :class="
+                                    isSelectionValid
+                                        ? 'text-blue-800'
+                                        : 'text-red-700'
+                                "
                             >
                                 {{ totalUnitsComputed }} / {{ limits.max }} وحدة
                             </span>
@@ -427,11 +478,15 @@ const prerequisiteMessage = (course: Course) => {
                             مجموع الوحدات يتجاوز الحد الأقصى المسموح به.
                         </p>
                         <p
-                            v-if="totalUnitsComputed < limits.min && selectedGroup.semester_level !== 6"
+                            v-if="
+                                totalUnitsComputed < limits.min &&
+                                selectedGroup.semester_level !== 6
+                            "
                             class="mt-3 flex items-center gap-1.5 text-sm font-bold text-red-700"
                         >
                             <AlertTriangle class="h-4 w-4" />
-                            لا يجوز التسجيل في أقل من الحد الأدنى إلا لطلاب فصل التخرج.
+                            لا يجوز التسجيل في أقل من الحد الأدنى إلا لطلاب فصل
+                            التخرج.
                         </p>
                     </div>
                 </section>
@@ -439,7 +494,11 @@ const prerequisiteMessage = (course: Course) => {
                 <div class="flex justify-end">
                     <button
                         type="submit"
-                        :disabled="form.processing || !isSelectionValid || !form.study_group_id"
+                        :disabled="
+                            form.processing ||
+                            !isSelectionValid ||
+                            !form.study_group_id
+                        "
                         class="inline-flex items-center gap-2 rounded-lg bg-orange-500 px-8 py-3 text-lg font-bold text-white shadow-md transition hover:bg-orange-600 disabled:cursor-not-allowed disabled:opacity-50"
                     >
                         <ClipboardCheck class="h-5 w-5" />
