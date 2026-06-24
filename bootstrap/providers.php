@@ -2,12 +2,15 @@
 
 use Modules\Academic\Providers\AcademicServiceProvider;
 use Modules\Auth\Providers\AuthServiceProvider;
+use Modules\Correspondence\Providers\CorrespondenceServiceProvider;
+use Modules\Graduation\Providers\GraduationServiceProvider;
 use Modules\Import\Providers\ImportServiceProvider;
 use Modules\Platform\Providers\PlatformServiceProvider;
 use Modules\Qualification\Providers\QualificationServiceProvider;
 use Modules\Staff\Providers\StaffServiceProvider;
 use Modules\Student\Providers\StudentServiceProvider;
 use Modules\User\Providers\UserServiceProvider;
+use Modules\Website\Providers\WebsiteServiceProvider;
 
 return [
     PlatformServiceProvider::class,
@@ -18,4 +21,7 @@ return [
     StaffServiceProvider::class,
     AcademicServiceProvider::class,
     StudentServiceProvider::class,
+    GraduationServiceProvider::class,
+    WebsiteServiceProvider::class,
+    CorrespondenceServiceProvider::class,
 ];

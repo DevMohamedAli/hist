@@ -2,6 +2,4 @@
 
 namespace App\Imports;
 
-class PdfCoursesImport extends \Modules\Import\Imports\PdfCoursesImport
-{
-}
+class PdfCoursesImport extends \Modules\Import\Imports\PdfCoursesImport {}

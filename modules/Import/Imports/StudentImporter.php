@@ -28,6 +28,7 @@ class StudentImporter extends BaseImporter
         foreach ($mapping as $excelCol => $systemField) {
             $data[$systemField] = $row[$excelCol] ?? null;
         }
+
         return $data;
     }
 

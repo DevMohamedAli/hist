@@ -2,9 +2,9 @@
 
 namespace Modules\Import\Imports;
 
-use Modules\Import\Models\ImportJob;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\Validator;
+use Modules\Import\Models\ImportJob;
 
 abstract class BaseImporter
 {
@@ -30,7 +30,7 @@ abstract class BaseImporter
     public function getPreviewData(ImportJob $job, int $limit = 20): array
     {
         $filePath = Storage::path($job->file_path);
-        $rows = (new \Modules\Import\Imports\GenericDataImport)->read($filePath);
+        $rows = (new GenericDataImport)->read($filePath);
 
         return array_slice($rows, 0, $limit);
     }

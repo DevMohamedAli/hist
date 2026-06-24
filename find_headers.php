@@ -1,19 +1,20 @@
 <?php
+
 require 'vendor/autoload.php';
 
 use Modules\Import\Support\SpreadsheetReader;
 
-$reader = new SpreadsheetReader();
+$reader = new SpreadsheetReader;
 $data = $reader->read('C:/Users/darkr/Downloads/test.csv');
 
 echo "Finding the header row with most non-empty cells:\n";
 $headerScores = [];
 for ($i = 0; $i < min(20, count($data)); $i++) {
-    $nonEmptyCount = count(array_filter($data[$i], fn($v) => trim((string)$v) !== ''));
+    $nonEmptyCount = count(array_filter($data[$i], fn ($v) => trim((string) $v) !== ''));
     $headerScores[$i] = $nonEmptyCount;
     echo "Row $i: $nonEmptyCount non-empty cells\n";
     if ($nonEmptyCount > 5) {
-        echo "  --> " . implode(' | ', array_slice(array_filter($data[$i], fn($v) => trim((string)$v) !== ''), 0, 10)) . "\n";
+        echo '  --> '.implode(' | ', array_slice(array_filter($data[$i], fn ($v) => trim((string) $v) !== ''), 0, 10))."\n";
     }
 }
 

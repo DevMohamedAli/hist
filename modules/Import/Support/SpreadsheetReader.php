@@ -18,6 +18,7 @@ class SpreadsheetReader
 
         if (class_exists($ioFactory)) {
             $spreadsheet = $ioFactory::load($filePath);
+
             return $spreadsheet->getActiveSheet()->toArray();
         }
 

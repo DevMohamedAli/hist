@@ -49,7 +49,7 @@ class GradeImporter extends BaseImporter
             ->first();
 
         if (! $student) {
-            throw new \InvalidArgumentException('لم يتم العثور على الطالب برقم القيد: ' . ($data['student_reg'] ?? '-'));
+            throw new \InvalidArgumentException('لم يتم العثور على الطالب برقم القيد: '.($data['student_reg'] ?? '-'));
         }
 
         $course = Course::query()
@@ -57,7 +57,7 @@ class GradeImporter extends BaseImporter
             ->first();
 
         if (! $course) {
-            throw new \InvalidArgumentException('لم يتم العثور على المقرر بالرمز: ' . ($data['course_code'] ?? '-'));
+            throw new \InvalidArgumentException('لم يتم العثور على المقرر بالرمز: '.($data['course_code'] ?? '-'));
         }
 
         $enrollment = CourseEnrollment::query()

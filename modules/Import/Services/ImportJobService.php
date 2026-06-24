@@ -2,17 +2,16 @@
 
 namespace Modules\Import\Services;
 
-use Modules\Import\Models\ImportJob;
-use Illuminate\Support\Facades\Storage;
+use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Auth;
-use Exception;
+use Modules\Import\Models\ImportJob;
 
 class ImportJobService
 {
     /**
      * Create a new import job after file upload.
      */
-    public function createJob(string $type, \Illuminate\Http\UploadedFile $file): ImportJob
+    public function createJob(string $type, UploadedFile $file): ImportJob
     {
         $path = $file->store('imports');
 
@@ -67,6 +66,7 @@ class ImportJobService
     public function getJobStatus(int $jobId): array
     {
         $job = ImportJob::findOrFail($jobId);
+
         return [
             'status' => $job->status,
             'progress' => $job->total_rows > 0 ? round(($job->processed_rows / $job->total_rows) * 100) : 0,

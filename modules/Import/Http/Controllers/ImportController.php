@@ -7,21 +7,21 @@ use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Storage;
 use Inertia\Inertia;
 use Inertia\Response;
+use Modules\Import\Imports\CourseImporter;
 use Modules\Import\Imports\GenericDataImport;
+use Modules\Import\Imports\GradeImporter;
 use Modules\Import\Imports\PdfCoursesImport;
+use Modules\Import\Imports\StudentImporter;
+use Modules\Import\Jobs\ProcessGradeWorkbookImport;
 use Modules\Import\Models\ImportJob;
+use Modules\Import\Services\GradeWorkbookImportService;
 use Modules\Import\Services\ImportJobService;
 use Modules\Import\Support\HeaderDetector;
 use Modules\Shared\Http\Controllers\Controller;
 
 class ImportController extends Controller
 {
-    protected ImportJobService $importJobService;
-
-    public function __construct(ImportJobService $importJobService)
-    {
-        $this->importJobService = $importJobService;
-    }
+    public function __construct(protected ImportJobService $importJobService) {}
 
     public function index(): Response
     {
@@ -31,6 +31,7 @@ class ImportController extends Controller
                 ['value' => 'students', 'label' => 'الطلاب'],
                 ['value' => 'courses', 'label' => 'المقررات الدراسية'],
                 ['value' => 'grades', 'label' => 'النتائج الفصلية'],
+                ['value' => 'grade_workbook', 'label' => 'كشف الدرجات متعدد الأوراق'],
             ],
         ]);
     }
@@ -42,14 +43,14 @@ class ImportController extends Controller
 
     public function importPdfCourses(Request $request)
     {
-        $validated = $request->validate([
+        $request->validate([
             'file' => ['required', 'file', 'mimes:pdf', 'max:20480'],
             'preview' => ['nullable', 'boolean'],
         ]);
 
         $path = $request->file('file')->store('imports/pdf-courses');
         $filePath = Storage::path($path);
-        $importer = new PdfCoursesImport();
+        $importer = new PdfCoursesImport;
 
         try {
             if ($request->boolean('preview')) {
@@ -58,11 +59,9 @@ class ImportController extends Controller
                 ]);
             }
 
-            $summary = $importer->importFromPdf($filePath);
-
             return response()->json([
                 'message' => 'تم استيراد مقررات PDF بنجاح.',
-                'summary' => $summary,
+                'summary' => $importer->importFromPdf($filePath),
             ]);
         } catch (\Throwable $exception) {
             Log::error('PDF courses import failed', [
@@ -90,14 +89,21 @@ class ImportController extends Controller
             return response()->json(['error' => 'Unsupported import file type.'], 422);
         }
 
+        if ($request->type === 'grade_workbook' && ! in_array($extension, ['xlsx', 'xls'], true)) {
+            return response()->json([
+                'message' => 'كشف الدرجات متعدد الأوراق يجب أن يكون ملف Excel بصيغة XLS أو XLSX.',
+            ], 422);
+        }
+
         $job = $this->importJobService->createJob($request->type, $request->file('file'));
 
         try {
-            // Detect columns for preview
+            if ($job->type === 'grade_workbook') {
+                return $this->uploadGradeWorkbook($job);
+            }
+
             $filePath = Storage::path($job->file_path);
             $rows = (new GenericDataImport)->read($filePath);
-
-            // Smart header detection: find the row with the most non-empty cells
             $headerRowIndex = HeaderDetector::detectHeaderRow($rows);
             $headers = HeaderDetector::extractHeaders($rows[$headerRowIndex] ?? []);
 
@@ -111,9 +117,13 @@ class ImportController extends Controller
                 'columns' => $headers,
                 'headerRowIndex' => $headerRowIndex,
             ]);
-        } catch (\Exception $e) {
-            // If file reading fails, still return job ID but with empty columns
-            // User can proceed and columns will be detected on preview
+        } catch (\Throwable $exception) {
+            Log::warning('Import upload preview failed', [
+                'job_id' => $job->id,
+                'type' => $job->type,
+                'exception' => $exception->getMessage(),
+            ]);
+
             return response()->json(['job_id' => $job->id, 'columns' => [], 'headerRowIndex' => 0], 200);
         }
     }
@@ -122,29 +132,49 @@ class ImportController extends Controller
     {
         $job = ImportJob::findOrFail($jobId);
 
-        // Resolve importer based on type
+        if ($job->type === 'grade_workbook') {
+            return response()->json([
+                'columns' => [],
+                'data' => [],
+                'schema' => [],
+                'workbook' => app(GradeWorkbookImportService::class)->preview(Storage::path($job->file_path)),
+            ]);
+        }
+
         $importer = $this->resolveImporter($job->type);
-        $previewData = $this->getContentRows($job);
 
         return response()->json([
             'columns' => $job->original_columns,
-            'data' => $previewData,
+            'data' => $this->getContentRows($job),
             'schema' => $importer->getSchema(),
         ]);
     }
 
     public function validate(Request $request, int $jobId)
     {
+        $job = ImportJob::findOrFail($jobId);
+
+        if ($job->type === 'grade_workbook') {
+            $preview = app(GradeWorkbookImportService::class)->preview(Storage::path($job->file_path));
+            $this->storeWorkbookPreview($job, $preview);
+            $valid = ($preview['summary']['sheets'] ?? 0) > 0
+                && ($preview['summary']['grade_cells'] ?? 0) > 0
+                && $this->hasUsableWorkbookMetadata($preview);
+
+            return response()->json([
+                'valid' => $valid,
+                'errors' => $valid ? [] : ['workbook' => ['لم يتم العثور على أوراق درجات قابلة للاستيراد أو بياناتها التعريفية غير مكتملة.']],
+                'warnings' => $preview['warnings'],
+                'summary' => $preview['summary'],
+            ]);
+        }
+
         $request->validate([
             'mapping' => 'required|array',
         ]);
 
-        $job = ImportJob::findOrFail($jobId);
-        $importer = $this->resolveImporter($job->type);
-
-        $contentRows = $this->getContentRows($job);
-
-        $errors = $importer->validateRows($contentRows, $request->mapping);
+        $errors = $this->resolveImporter($job->type)
+            ->validateRows($this->getContentRows($job), $request->mapping);
 
         return response()->json([
             'valid' => empty($errors),
@@ -161,9 +191,37 @@ class ImportController extends Controller
         ]);
 
         $job = ImportJob::findOrFail($jobId);
+
+        if ($job->type === 'grade_workbook') {
+            $preview = app(GradeWorkbookImportService::class)->preview(Storage::path($job->file_path));
+
+            if (
+                ($preview['summary']['sheets'] ?? 0) === 0
+                || ($preview['summary']['grade_cells'] ?? 0) === 0
+                || ! $this->hasUsableWorkbookMetadata($preview)
+            ) {
+                $this->storeWorkbookPreview($job, $preview);
+
+                return response()->json([
+                    'message' => 'لم يتم العثور على أوراق درجات قابلة للاستيراد أو بياناتها التعريفية غير مكتملة.',
+                    'summary' => $preview['summary'],
+                ], 422);
+            }
+
+            $job->update([
+                'status' => 'queued',
+                'processed_rows' => 0,
+                'errors' => null,
+            ]);
+
+            ProcessGradeWorkbookImport::dispatch($job->id);
+
+            return response()->json(['message' => 'تم إرسال استيراد كشف الدرجات إلى قائمة الانتظار.']);
+        }
+
         $mapping = $request->mapping ?? $job->mapping;
 
-        if (!$mapping) {
+        if (! $mapping) {
             return response()->json(['message' => 'ربط الحقول مطلوب قبل تنفيذ الاستيراد.'], 400);
         }
 
@@ -187,19 +245,19 @@ class ImportController extends Controller
             }
 
             foreach ($contentRows as $index => $row) {
-                $parsed = $importer->parseRow($row, $mapping);
-                $importer->importRow($parsed);
-
+                $importer->importRow($importer->parseRow($row, $mapping));
                 $this->importJobService->updateProgress($job->id, $index + 1, $total);
             }
 
             $job->update(['status' => 'completed']);
+
             return response()->json(['message' => 'تم استيراد البيانات بنجاح.']);
-        } catch (\Throwable $e) {
-            $job->update(['status' => 'failed', 'errors' => [$e->getMessage()]]);
+        } catch (\Throwable $exception) {
+            $job->update(['status' => 'failed', 'errors' => [$exception->getMessage()]]);
+
             return response()->json([
                 'message' => 'تعذر تنفيذ الاستيراد.',
-                'error' => $e->getMessage(),
+                'error' => $exception->getMessage(),
             ], 422);
         }
     }
@@ -212,31 +270,29 @@ class ImportController extends Controller
     public function cancel(int $jobId)
     {
         $this->importJobService->cancelJob($jobId);
+
         return response()->json(['message' => 'Import cancelled']);
     }
 
     protected function resolveImporter(string $type)
     {
         return match ($type) {
-            'courses' => new \Modules\Import\Imports\CourseImporter(),
-            'students' => new \Modules\Import\Imports\StudentImporter(),
-            'grades' => new \Modules\Import\Imports\GradeImporter(),
+            'courses' => new CourseImporter,
+            'students' => new StudentImporter,
+            'grades' => new GradeImporter,
             default => throw new \Exception("Unsupported import type: $type"),
         };
     }
 
     protected function getContentRows(ImportJob $job): array
     {
-        $filePath = Storage::path($job->file_path);
-        $rows = (new GenericDataImport)->read($filePath);
+        $rows = (new GenericDataImport)->read(Storage::path($job->file_path));
         $headers = $job->original_columns ?? HeaderDetector::extractHeaders($rows[0] ?? []);
-
-        // Use the stored header row index, or detect it if not stored
         $headerRowIndex = $job->header_row_index ?? HeaderDetector::detectHeaderRow($rows);
         $contentRows = array_slice($rows, $headerRowIndex + 1);
 
         return array_map(
-            fn(array $row): array => $this->combineHeadersWithRow($headers, $row),
+            fn (array $row): array => $this->combineHeadersWithRow($headers, $row),
             $contentRows,
         );
     }
@@ -267,5 +323,45 @@ class ImportController extends Controller
             fn (array $_row, int $index): bool => (bool) ($selectedRows[$index] ?? false),
             ARRAY_FILTER_USE_BOTH,
         ));
+    }
+
+    private function uploadGradeWorkbook(ImportJob $job)
+    {
+        $preview = app(GradeWorkbookImportService::class)->preview(Storage::path($job->file_path));
+        $this->storeWorkbookPreview($job, $preview);
+
+        return response()->json([
+            'job_id' => $job->id,
+            'type' => $job->type,
+            'columns' => [],
+            'workbook' => $preview,
+        ]);
+    }
+
+    private function storeWorkbookPreview(ImportJob $job, array $preview): void
+    {
+        $job->update([
+            'original_columns' => array_column($preview['sheets'], 'name'),
+            'total_rows' => $preview['summary']['grade_cells'] ?? 0,
+            'errors' => [
+                'summary' => $preview['summary'],
+                'warnings' => $preview['warnings'],
+            ],
+        ]);
+    }
+
+    private function hasUsableWorkbookMetadata(array $preview): bool
+    {
+        foreach ($preview['sheets'] as $sheet) {
+            if (
+                ($sheet['metadata']['metadata_complete'] ?? false)
+                || ! str_starts_with((string) $sheet['metadata']['department'], 'Imported ')
+                || ! str_starts_with((string) $sheet['metadata']['specialization'], 'Imported ')
+            ) {
+                return true;
+            }
+        }
+
+        return false;
     }
 }

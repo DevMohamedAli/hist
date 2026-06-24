@@ -23,6 +23,7 @@ class CourseImporter extends BaseImporter
             // $excelCol is the index or header name from the file
             $data[$systemField] = $row[$excelCol] ?? null;
         }
+
         return $data;
     }
 

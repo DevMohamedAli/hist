@@ -24,7 +24,8 @@ class PdfCoursesImport
         foreach ($rows as $row) {
             if (empty($row['code']) || empty($row['name']) || empty($row['units'])) {
                 $summary['skipped']++;
-                $summary['errors'][] = 'تم تجاوز صف غير مكتمل: ' . ($row['raw'] ?? '');
+                $summary['errors'][] = 'تم تجاوز صف غير مكتمل: '.($row['raw'] ?? '');
+
                 continue;
             }
 
@@ -62,7 +63,7 @@ class PdfCoursesImport
     public function extractRows(string $filePath): array
     {
         try {
-            $text = (new Parser())->parseFile($filePath)->getText();
+            $text = (new Parser)->parseFile($filePath)->getText();
         } catch (Throwable $exception) {
             Log::error('PDF course import parsing failed', [
                 'file' => $filePath,
@@ -109,8 +110,8 @@ class PdfCoursesImport
             }
 
             if ($pending && ! $this->looksLikeHeader($line)) {
-                $pending['name'] = $this->cleanCourseName($pending['name'] . ' ' . $line);
-                $pending['raw'] = trim($pending['raw'] . ' ' . $line);
+                $pending['name'] = $this->cleanCourseName($pending['name'].' '.$line);
+                $pending['raw'] = trim($pending['raw'].' '.$line);
             }
         }
 
@@ -142,7 +143,7 @@ class PdfCoursesImport
             $nextStart = isset($codes[$index + 1]) ? $codes[$index + 1][1] : $lineLength;
             $content = substr($line, $codeEnd, max(0, $nextStart - $codeEnd));
 
-            $segments[] = trim($code . ' ' . $this->removeTrailingTableIndex($content));
+            $segments[] = trim($code.' '.$this->removeTrailingTableIndex($content));
         }
 
         return array_values(array_filter($segments, fn (string $segment): bool => $segment !== ''));
@@ -157,7 +158,7 @@ class PdfCoursesImport
         $code = $this->normalizeCode($match['code'][0]);
         $before = trim(substr($line, 0, $match['code'][1]));
         $after = trim(substr($line, $match['code'][1] + strlen($match['code'][0])));
-        $rest = trim($before . ' ' . $after);
+        $rest = trim($before.' '.$after);
 
         $parts = preg_split('/\s{2,}|\t|\|/u', $rest) ?: [];
         $parts = array_values(array_filter(array_map('trim', $parts), fn (string $value): bool => $value !== ''));
@@ -231,7 +232,7 @@ class PdfCoursesImport
 
     private function hasPractical(array $row): bool
     {
-        $haystack = mb_strtolower(($row['weekly_hours'] ?? '') . ' ' . ($row['raw'] ?? ''));
+        $haystack = mb_strtolower(($row['weekly_hours'] ?? '').' '.($row['raw'] ?? ''));
 
         return str_contains($haystack, 'practical')
             || str_contains($haystack, 'lab')

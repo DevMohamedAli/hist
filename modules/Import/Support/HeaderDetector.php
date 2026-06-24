@@ -19,7 +19,7 @@ class HeaderDetector
         // Score each row based on non-empty cell count
         foreach ($rows as $rowIndex => $row) {
             // Count non-empty cells
-            $nonEmptyCount = count(array_filter($row, fn($v) => trim((string)$v) !== ''));
+            $nonEmptyCount = count(array_filter($row, fn ($v) => trim((string) $v) !== ''));
             $headerScores[$rowIndex] = $nonEmptyCount;
         }
 
@@ -44,8 +44,8 @@ class HeaderDetector
         $headers = [];
 
         foreach ($row as $index => $value) {
-            $trimmedValue = trim((string)$value);
-            $headers[] = $trimmedValue !== '' ? $trimmedValue : 'Column ' . ($index + 1);
+            $trimmedValue = trim((string) $value);
+            $headers[] = $trimmedValue !== '' ? $trimmedValue : 'Column '.($index + 1);
         }
 
         return $headers;

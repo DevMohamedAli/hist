@@ -13,7 +13,7 @@ return new class extends Migration
     {
         Schema::table('import_jobs', function (Blueprint $table) {
             // Add column to track which row contains the headers
-            if (!Schema::hasColumn('import_jobs', 'header_row_index')) {
+            if (! Schema::hasColumn('import_jobs', 'header_row_index')) {
                 $table->integer('header_row_index')->default(0)->after('original_columns');
             }
         });
